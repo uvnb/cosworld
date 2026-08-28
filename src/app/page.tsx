@@ -1,5 +1,5 @@
 import { ListingsGrid } from '@/components/listings/ListingsGrid'
-import { Shirt, Smile, Sword, Footprints, Gem, Camera, MoreHorizontal } from 'lucide-react'
+import { Shirt, Smile, Sword, Footprints, Gem, Camera, MoreHorizontal, ChevronRight, Users, Calendar } from 'lucide-react'
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const resolvedParams = await searchParams
@@ -29,17 +29,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           ))}
         </section>
 
-        {/* Banner Section */}
-        <section className="relative rounded-3xl overflow-hidden bg-slate-900 aspect-[4/1] min-h-[160px] flex items-center">
-          <img src="https://images.unsplash.com/photo-1612487528505-d2338264c821?w=1600&auto=format&fit=crop&q=80" alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-50" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-transparent"></div>
-          <div className="relative z-10 px-6 sm:px-12 max-w-2xl">
-            <span className="inline-block px-3 py-1 bg-brand-500 text-white text-xs font-bold rounded-full mb-3">HOT EVENT</span>
-            <h2 className="text-2xl sm:text-4xl font-black text-white mb-2 leading-tight">Lễ Hội Cosplay Mùa Hè 2024</h2>
-            <p className="text-slate-300 text-sm font-medium mb-4">Giảm 50% phí cọc cho tất cả đồ thuê trong tháng 7</p>
-            <button className="px-5 py-2.5 bg-white text-slate-900 font-bold rounded-full text-sm hover:bg-slate-100 transition shadow-lg">Khám phá ngay</button>
-          </div>
-        </section>
+
 
         {/* Main Content Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start mt-8">
@@ -65,8 +55,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <span className="w-4 h-4 text-brand-600 flex items-center justify-center"><Users className="w-full h-full" /></span>
                   Lập team / Tuyển staff
                 </h3>
+                <button className="text-[11px] font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                  Xem tất cả <ChevronRight className="w-3 h-3" />
+                </button>
               </div>
               <div className="space-y-3.5">
                 <div className="text-sm text-slate-500 text-center py-4">Chưa có bài đăng nào</div>
@@ -76,8 +70,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <span className="w-4 h-4 text-indigo-600 flex items-center justify-center"><Calendar className="w-full h-full" /></span>
                   Sự kiện sắp diễn ra
                 </h3>
+                <button className="text-[11px] font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                  Xem tất cả <ChevronRight className="w-3 h-3" />
+                </button>
               </div>
               <div className="space-y-3.5">
                 <div className="text-sm text-slate-500 text-center py-4">Chưa có sự kiện nào</div>
