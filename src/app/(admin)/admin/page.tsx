@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ShieldAlert, CheckCircle2, XCircle } from 'lucide-react'
+import { resolveReportAction, resolveEventAction } from '@/app/actions/admin'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -15,8 +16,6 @@ export default async function AdminDashboard() {
     .eq('id', user.id)
     .single()
 
-  // Lưu ý: Trong DB có 'admin' role? 
-  // (Trong schema init.sql có role default là 'user', cần set 'admin' thủ công qua SQL)
   if (profile?.role !== 'admin') {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -29,8 +28,7 @@ export default async function AdminDashboard() {
     )
   }
 
-  // Lấy các bài post đang chờ duyệt (nếu có state pending)
-  // MVP: Lấy tất cả bài viết mới nhất để Admin xem/xóa
+  // Lấy danh sách Listing mới nhất
   const { data: latestListings } = await supabase
     .from('listings')
     .select('*, owner:owner_id(username)')
@@ -90,12 +88,16 @@ export default async function AdminDashboard() {
                 </div>
                 <p className="text-sm text-slate-600 mb-4">{report.description}</p>
                 <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-rose-600 text-white font-semibold text-xs rounded-xl hover:bg-rose-700 transition">
-                    Ban tài khoản / Trừ Uy Tín
-                  </button>
-                  <button className="px-4 py-2 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-200 transition">
-                    Đóng (Bỏ qua)
-                  </button>
+                  <form action={resolveReportAction.bind(null, report.id, 'ban', report.reported_user_id)}>
+                    <button type="submit" className="px-4 py-2 bg-rose-600 text-white font-semibold text-xs rounded-xl hover:bg-rose-700 transition">
+                      Trừ Uy Tín về 0 (Phạt)
+                    </button>
+                  </form>
+                  <form action={resolveReportAction.bind(null, report.id, 'dismiss', report.reported_user_id)}>
+                    <button type="submit" className="px-4 py-2 bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-200 transition">
+                      Đóng (Bỏ qua)
+                    </button>
+                  </form>
                 </div>
               </div>
             ))}
@@ -118,12 +120,16 @@ export default async function AdminDashboard() {
                   <p className="text-sm text-slate-500 mt-1">{evt.city} • {new Date(evt.start_date).toLocaleDateString('vi-VN')}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-emerald-50 text-emerald-700 font-semibold text-xs rounded-xl flex items-center gap-1 hover:bg-emerald-100">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Duyệt
-                  </button>
-                  <button className="px-4 py-2 bg-rose-50 text-rose-700 font-semibold text-xs rounded-xl flex items-center gap-1 hover:bg-rose-100">
-                    <XCircle className="w-3.5 h-3.5" /> Xóa
-                  </button>
+                  <form action={resolveEventAction.bind(null, evt.id, 'approve')}>
+                    <button type="submit" className="px-4 py-2 bg-emerald-50 text-emerald-700 font-semibold text-xs rounded-xl flex items-center gap-1 hover:bg-emerald-100">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Duyệt
+                    </button>
+                  </form>
+                  <form action={resolveEventAction.bind(null, evt.id, 'reject')}>
+                    <button type="submit" className="px-4 py-2 bg-rose-50 text-rose-700 font-semibold text-xs rounded-xl flex items-center gap-1 hover:bg-rose-100">
+                      <XCircle className="w-3.5 h-3.5" /> Xóa
+                    </button>
+                  </form>
                 </div>
               </div>
             ))}
