@@ -116,6 +116,18 @@ export function CreateListingForm({ userId }: { userId: string }) {
       toast.info('Đang nén và tải ảnh lên server...')
       const imageUrls = await uploadImagesToR2()
 
+      let lng = 106.660172 // Mặc định HCM
+      let lat = 10.762622
+      
+      const cityLower = data.city.toLowerCase()
+      if (cityLower.includes('hà nội') || cityLower.includes('ha noi')) {
+        lng = 105.8342
+        lat = 21.0278
+      } else if (cityLower.includes('đà nẵng') || cityLower.includes('da nang')) {
+        lng = 108.2022
+        lat = 16.0544
+      }
+
       // 2. Tạo Listing trong Supabase
       const { data: listing, error: listingError } = await supabase
         .from('listings')
@@ -133,6 +145,7 @@ export function CreateListingForm({ userId }: { userId: string }) {
           max_rental_days: parseInt(data.max_rental_days),
           district: data.district,
           city: data.city,
+          location: `POINT(${lng} ${lat})`,
           status: 'active'
         })
         .select()
