@@ -1,9 +1,19 @@
 import { ListingsGrid } from '@/components/listings/ListingsGrid'
 import { Shirt, Smile, Sword, Footprints, Gem, Camera, MoreHorizontal, ChevronRight, Users, Calendar } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const resolvedParams = await searchParams
   const q = resolvedParams?.q || ''
+
+  const supabase = await createClient()
+  const { data: events } = await supabase
+    .from('events')
+    .select('*')
+    .eq('status', 'approved')
+    .gte('end_date', new Date().toISOString().split('T')[0])
+    .order('start_date', { ascending: true })
+    .limit(3)
 
   return (
     <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full flex-1">
@@ -78,7 +88,20 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 </button>
               </div>
               <div className="space-y-3.5">
-                <div className="text-sm text-slate-500 text-center py-4">Chưa có sự kiện nào</div>
+                {events && events.length > 0 ? events.map(evt => (
+                  <div key={evt.id} className="flex gap-3 items-center group cursor-pointer hover:bg-slate-50 p-2 -mx-2 rounded-xl transition">
+                    <img src={evt.poster_url || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=120&auto=format&fit=crop&q=80"} className="w-12 h-12 rounded-xl object-cover shrink-0" alt="Event" />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-xs font-bold text-slate-800 truncate group-hover:text-brand-600 transition">{evt.name}</h4>
+                      <div className="text-[10px] text-slate-400 mt-1 flex flex-col gap-0.5">
+                        <span>📍 {evt.venue ? `${evt.venue}, ` : ''}{evt.city}</span>
+                        <span className="text-indigo-600 font-bold">{new Date(evt.start_date).toLocaleDateString('vi-VN')}</span>
+                      </div>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="text-sm text-slate-500 text-center py-4">Chưa có sự kiện nào</div>
+                )}
               </div>
             </div>
           </aside>
