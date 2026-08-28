@@ -39,3 +39,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+R2_ACCESS_KEY_ID-R2_SECRET_ACCESS_KEY.png
