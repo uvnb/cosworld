@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Star, Package, ShoppingBag, MessageSquare, Facebook, Phone, MapPin, CheckCircle2 } from 'lucide-react'
+import { Star, Package, ShoppingBag, MessageSquare, Link2, Phone, MapPin, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function ProfilePage() {
@@ -89,7 +89,7 @@ export default async function ProfilePage() {
                 {profile?.facebook_url && (
                   <a href={profile.facebook_url} target="_blank" className="flex items-center gap-3 group">
                     <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 group-hover:bg-indigo-100 transition">
-                      <Facebook className="w-4 h-4 text-indigo-600" />
+                      <Link2 className="w-4 h-4 text-indigo-600" />
                     </div>
                     <span className="font-medium text-indigo-600 group-hover:underline">Facebook Profile</span>
                   </a>
