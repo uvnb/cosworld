@@ -44,6 +44,24 @@ export default async function SignupPage({
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="phone">Số điện thoại</Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="0987654321"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="facebook_url">Link Facebook</Label>
+            <Input
+              id="facebook_url"
+              name="facebook_url"
+              type="url"
+              placeholder="https://facebook.com/username"
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="password">Mật khẩu</Label>
             <Input
               id="password"

@@ -31,6 +31,8 @@ export async function signup(formData: FormData) {
     options: {
       data: {
         username: formData.get('username') as string,
+        phone: formData.get('phone') as string,
+        facebook_url: formData.get('facebook_url') as string,
       }
     }
   }
