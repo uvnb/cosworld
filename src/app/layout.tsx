@@ -12,9 +12,6 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "CosWorld | Nền tảng kết nối cộng đồng Cosplay P2P tại Việt Nam",
   description: "Cho thuê đồ, makeup, photographer, event cosplay. Nền tảng an toàn, chống bùng cọc 100%.",
-  icons: {
-    icon: '/logo-web.png'
-  }
 };
 
 import { Providers } from "@/components/Providers"

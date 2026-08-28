@@ -98,7 +98,7 @@ export async function TopBar() {
           <Link href="/" className="py-3.5 px-2 border-b-2 border-brand-600 text-brand-600 flex items-center gap-2 shrink-0 transition">
             <Home className="w-4 h-4" /> Trang chủ
           </Link>
-          <Link href="/" className="py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">
+          <Link href="/listings" className="py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">
             <ShoppingBag className="w-4 h-4" /> Thuê & Mua bán
           </Link>
           <Link href="/services" className="py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">

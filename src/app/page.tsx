@@ -6,96 +6,105 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const resolvedParams = await searchParams
   const q = resolvedParams?.q || ''
 
+  const supabase = await createClient()
+  const { data: events } = await supabase
+    .from('events')
+    .select('*')
+    .eq('status', 'approved')
+    .gte('end_date', new Date().toISOString().split('T')[0])
+    .order('start_date', { ascending: true })
+    .limit(3)
+
   return (
     <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full flex-1">
       <div className="space-y-6">
-        
-        {/* Top Banner */}
-        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-4 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900">Sàn Giao Dịch Cosplay Toàn Quốc</h1>
-            <p className="text-slate-500 text-sm mt-1">Hơn 500+ trang phục cho thuê & đồ thanh lý pass lại từ cộng đồng cosplayer uy tín</p>
-          </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="bg-slate-100 rounded-full p-1 flex items-center shrink-0">
-              <button className="px-4 py-2 bg-white rounded-full text-sm font-bold text-slate-900 shadow-sm">Tất cả</button>
-              <button className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-900">Chỉ đồ thuê</button>
-              <button className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-900">Bán thanh lý</button>
+
+        {/* Category Icon Bar */}
+        <section className="grid grid-cols-4 sm:grid-cols-7 gap-3 sm:gap-4">
+          {[
+            { icon: Shirt, label: 'Trang phục', color: 'text-purple-600', bg: 'bg-purple-50' },
+            { icon: Smile, label: 'Tóc giả', color: 'text-pink-500', bg: 'bg-pink-50' },
+            { icon: Sword, label: 'Vũ khí', color: 'text-blue-600', bg: 'bg-blue-50' },
+            { icon: Footprints, label: 'Giày dép', color: 'text-rose-500', bg: 'bg-rose-50' },
+            { icon: Gem, label: 'Phụ kiện', color: 'text-amber-600', bg: 'bg-amber-50' },
+            { icon: Camera, label: 'Studio', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { icon: MoreHorizontal, label: 'Khác', color: 'text-slate-600', bg: 'bg-slate-100' },
+          ].map((cat, i) => (
+            <div key={i} className="flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-brand-500 cursor-pointer transition">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-1.5 ${cat.bg} ${cat.color}`}>
+                <cat.icon className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-semibold text-slate-700">{cat.label}</span>
             </div>
-            <a href="/listings/create" className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-full text-sm font-bold shrink-0 transition flex items-center gap-2 shadow-sm">
-              <span className="text-lg leading-none">+</span> Đăng đồ cho thuê / Bán pass
-            </a>
-          </div>
-        </div>
+          ))}
+        </section>
+
+
 
         {/* Main Content Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start mt-8">
           
-          {/* Left: Filter Sidebar (3 Cols) */}
-          <aside className="lg:col-span-3 space-y-5 sticky top-24">
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                  <span className="text-brand-600">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-                  </span>
-                  BỘ LỌC SẢN PHẨM
-                </h3>
-                <button className="text-xs font-bold text-brand-600 hover:text-brand-700">Làm mới</button>
+          {/* Left: Listing Grid (9 Cols) */}
+          <section className="xl:col-span-9 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">
+                  {q ? `Kết quả tìm kiếm cho "${q}"` : 'Nổi bật trên CosWorld'}
+                </h2>
+                <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                  Vị trí bảo mật Fuzzy (±500m) • PostGIS Matching
+                </p>
               </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-xs font-bold text-slate-700 mb-3">Size trang phục</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['Size S', 'Size M', 'Size L', 'One-size'].map(s => (
-                      <label key={s} className="flex items-center gap-2 p-2 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition">
-                        <input type="checkbox" className="rounded text-brand-600 focus:ring-brand-500" />
-                        <span className="text-xs font-medium text-slate-700">{s}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-bold text-slate-700 mb-3">Danh mục món đồ</h4>
-                  <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 appearance-none">
-                    <option>Tất cả danh mục</option>
-                    <option>Trang phục</option>
-                    <option>Tóc giả</option>
-                    <option>Vũ khí</option>
-                    <option>Giày dép</option>
-                  </select>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-bold text-slate-700 mb-1">Khu vực (PostGIS Matching)</h4>
-                  <p className="text-[10px] text-slate-400 mb-3">Độ lệch an toàn Fuzzy ±500m</p>
-                  <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 appearance-none">
-                    <option>Toàn quốc</option>
-                    <option>Hà Nội</option>
-                    <option>TP. HCM</option>
-                    <option>Đà Nẵng</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </aside>
-
-          {/* Right: Listing Grid (9 Cols) */}
-          <section className="lg:col-span-9 space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-slate-500 font-medium">Hiển thị {q ? `kết quả cho "${q}"` : 'các sản phẩm'}</p>
-              <select className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-700 focus:outline-none appearance-none shadow-sm cursor-pointer">
-                <option>Mới đăng nhất</option>
-                <option>Giá thấp nhất</option>
-                <option>Giá cao nhất</option>
-              </select>
             </div>
             
             <ListingsGrid query={q} />
           </section>
 
+          {/* Right: Sticky Sidebar (3 Cols) */}
+          <aside className="xl:col-span-3 space-y-5 sticky top-24">
+            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <span className="w-4 h-4 text-brand-600 flex items-center justify-center"><Users className="w-full h-full" /></span>
+                  Lập team / Tuyển staff
+                </h3>
+                <button className="text-[11px] font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                  Xem tất cả <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="space-y-3.5">
+                <div className="text-sm text-slate-500 text-center py-4">Chưa có bài đăng nào</div>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <span className="w-4 h-4 text-indigo-600 flex items-center justify-center"><Calendar className="w-full h-full" /></span>
+                  Sự kiện sắp diễn ra
+                </h3>
+                <button className="text-[11px] font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                  Xem tất cả <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+              <div className="space-y-3.5">
+                {events && events.length > 0 ? events.map(evt => (
+                  <div key={evt.id} className="flex gap-3 items-center group cursor-pointer hover:bg-slate-50 p-2 -mx-2 rounded-xl transition">
+                    <img src={evt.poster_url || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=120&auto=format&fit=crop&q=80"} className="w-12 h-12 rounded-xl object-cover shrink-0" alt="Event" />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-xs font-bold text-slate-800 truncate group-hover:text-brand-600 transition">{evt.name}</h4>
+                      <div className="text-[10px] text-slate-400 mt-1 flex flex-col gap-0.5">
+                        <span>📍 {evt.venue ? `${evt.venue}, ` : ''}{evt.city}</span>
+                        <span className="text-indigo-600 font-bold">{new Date(evt.start_date).toLocaleDateString('vi-VN')}</span>
+                      </div>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="text-sm text-slate-500 text-center py-4">Chưa có sự kiện nào</div>
+                )}
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
     </main>
