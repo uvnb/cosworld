@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full bg-slate-50/70 text-slate-900">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CosWorld — Mạng Xã Hội & Sàn Thuê Đồ Cosplay</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            700: '#be185d'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body class="min-h-full flex flex-col antialiased">
+
+    <!-- ================= TOPBAR ================= -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between gap-6">
+
+            <!-- Brand Logo -->
+            <a href="javascript:void(0)" onclick="switchView('home')" class="flex items-center gap-2.5 shrink-0">
+                <div
+                    class="h-10 w-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-black tracking-tight text-slate-900 flex items-center gap-1">
+                        Cos<span class="text-brand-600">World</span>
+                    </span>
+                    <span class="text-[10px] block text-slate-400 font-semibold uppercase tracking-wider -mt-1">
+                        Thuê đồ • Tuyển staff • Sự kiện
+                    </span>
+                </div>
+            </a>
+
+            <!-- Global Search Bar -->
+            <div class="hidden md:flex flex-1 max-w-2xl items-center relative">
+                <input id="globalSearchInput" type="text" oninput="handleSearch(this.value)"
+                    placeholder="Tìm kiếm cosplay, nhân vật, đạo cụ, vũ khí, studio..."
+                    class="w-full pl-5 pr-12 py-2.5 text-sm bg-slate-100/80 hover:bg-slate-100 focus:bg-white border border-transparent focus:border-brand-500 rounded-full outline-none transition">
+                <button class="absolute right-4 text-slate-400 hover:text-brand-600 transition">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Right Header: Auth Actions -->
+            <div class="flex items-center gap-3">
+                <button onclick="showToast('Hệ thống tin nhắn đang kết nối Zalo/Messenger')"
+                    class="hidden sm:flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+                    <i data-lucide="message-square" class="w-4 h-4 text-slate-500"></i>
+                    <span>Tin nhắn</span>
+                </button>
+
+                <button onclick="showToast('Bạn không có thông báo mới')"
+                    class="p-2.5 text-slate-600 hover:bg-slate-100 rounded-full relative transition">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                </button>
+
+                <!-- Trạng thái 1: Chưa đăng nhập -->
+                <div id="guestSection" class="pl-2 border-l border-slate-200">
+                    <button onclick="openAuthModal('login')"
+                        class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                        <span>Đăng nhập / Đăng ký</span>
+                    </button>
+                </div>
+
+                <!-- Trạng thái 2: Đã đăng nhập -->
+                <div id="userSection" class="hidden items-center gap-3 pl-3 border-l border-slate-200">
+                    <div onclick="switchView('profile')"
+                        class="flex items-center gap-2.5 cursor-pointer p-1.5 rounded-xl hover:bg-slate-100/80 transition"
+                        title="Xem trang cá nhân">
+                        <img id="topbarAvatar"
+                            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+                            alt="User Avatar" class="w-8 h-8 rounded-full object-cover ring-2 ring-brand-200">
+                        <div class="hidden lg:block text-left">
+                            <span id="topbarDisplayName"
+                                class="text-xs font-bold text-slate-800 block leading-tight">Khách</span>
+                            <span class="text-[10px] text-brand-600 font-semibold">Xem profile</span>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()"
+                        class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
+                        title="Đăng xuất">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Navigation Hub Tabs -->
+        <div class="border-t border-slate-100 bg-white">
+            <div
+                class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 flex items-center gap-2 sm:gap-8 overflow-x-auto hide-scrollbar text-xs font-bold">
+                <button id="nav-home" onclick="switchView('home')"
+                    class="nav-tab py-3.5 px-2 border-b-2 border-brand-600 text-brand-600 flex items-center gap-2 shrink-0 transition">
+                    <i data-lucide="home" class="w-4 h-4"></i> Trang chủ
+                </button>
+                <button id="nav-shop" onclick="switchView('shop')"
+                    class="nav-tab py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">
+                    <i data-lucide="shopping-bag" class="w-4 h-4"></i> Thuê & Mua bán
+                </button>
+                <button id="nav-teams" onclick="switchView('teams')"
+                    class="nav-tab py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">
+                    <i data-lucide="users" class="w-4 h-4"></i> Lập team / Tuyển staff
+                </button>
+                <button id="nav-events" onclick="switchView('events')"
+                    class="nav-tab py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">
+                    <i data-lucide="calendar" class="w-4 h-4"></i> Sự kiện & Festival
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= MAIN ROUTER ================= -->
+    <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full flex-1">
+
+        <!-- ================= VIEW 1: TRANG CHỦ ================= -->
+        <div id="view-home" class="spa-view space-y-6">
+
+            <!-- Category Icon Bar -->
+            <section class="grid grid-cols-4 sm:grid-cols-7 gap-3 sm:gap-4">
+                <div onclick="filterCategory('Trang phục', this)"
+                    class="cat-card flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-brand-500 cursor-pointer transition">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 mb-1.5">
+                        <i data-lucide="shirt" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-700">Trang phục</span>
+                </div>
+
+                <div onclick="filterCategory('Tóc giả', this)"
+                    class="cat-card flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-brand-500 cursor-pointer transition">
+                    <div class="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center text-pink-500 mb-1.5">
+                        <i data-lucide="smile" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-700">Tóc giả</span>
+                </div>
+
+                <div onclick="filterCategory('Vũ khí', this)"
+                    class="cat-card flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-brand-500 cursor-pointer transition">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 mb-1.5">
+                        <i data-lucide="sword" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-700">Vũ khí</span>
+                </div>
+
+                <div onclick="filterCategory('Giày', this)"
+                    class="cat-card flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-brand-500 cursor-pointer transition">
+                    <div class="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500 mb-1.5">
+                        <i data-lucide="footprints" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-700">Giày dép</span>
+                </div>
+
+                <div onclick="filterCategory('Phụ kiện', this)"
+                    class="cat-card flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-brand-500 cursor-pointer transition">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 mb-1.5">
+                        <i data-lucide="gem" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-700">Phụ kiện</span>
+                </div>
+
+                <div onclick="filterCategory('Studio', this)"
+                    class="cat-card flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-brand-500 cursor-pointer transition">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600 mb-1.5">
+                        <i data-lucide="camera" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-700">Studio</span>
+                </div>
+
+                <div onclick="switchView('teams')"
+                    class="cat-card flex flex-col items-center justify-center p-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-brand-500 cursor-pointer transition">
+                    <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-500 mb-1.5">
+                        <i data-lucide="wand-2" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-700">Makeup/Photo</span>
+                </div>
+            </section>
+
+            <!-- 2-Column Home Layout -->
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+
+                <!-- Left: Listing Grid (9 Cols) -->
+                <section class="xl:col-span-9 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 id="listingHeading" class="text-lg font-bold text-slate-900">Nổi bật trên CosWorld</h2>
+                            <p class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                Vị trí bảo mật Fuzzy (±500m) • PostGIS Matching
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="resetFilterBtn" onclick="resetCategoryFilter()"
+                                class="hidden text-xs font-bold text-brand-600 hover:text-brand-700 bg-brand-50 px-3 py-1 rounded-full transition">
+                                Xoá lọc ✕
+                            </button>
+                            <span id="itemCountBadge"
+                                class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">10 sản
+                                phẩm</span>
+                        </div>
+                    </div>
+
+                    <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+                        <!-- Rendered via JS -->
+                    </div>
+                </section>
+
+                <!-- Right: Sticky Sidebar (3 Cols) -->
+                <aside class="xl:col-span-3 space-y-5 sticky top-24">
+
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                                <i data-lucide="users" class="w-4 h-4 text-brand-600"></i>
+                                Lập team / Tuyển staff
+                            </h3>
+                            <button onclick="switchView('teams')"
+                                class="text-[11px] font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                                Xem tất cả <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <div onclick="switchView('teams')" class="flex gap-3 items-center group cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?w=120&auto=format&fit=crop&q=80"
+                                    class="w-12 h-12 rounded-xl object-cover shrink-0">
+                                <div class="flex-1 min-w-0">
+                                    <h4
+                                        class="text-xs font-bold text-slate-800 truncate group-hover:text-brand-600 transition">
+                                        [Genshin Team] Tuyển 2 cosplayer nữ</h4>
+                                    <div class="flex gap-1 mt-1">
+                                        <span
+                                            class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">Cosplayer</span>
+                                        <span
+                                            class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">Makeup</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-1 flex items-center justify-between">
+                                        <span>📍 TP. HCM</span>
+                                        <span class="text-emerald-600 font-bold">3 ứng tuyển</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div onclick="switchView('teams')" class="flex gap-3 items-center group cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=120&auto=format&fit=crop&q=80"
+                                    class="w-12 h-12 rounded-xl object-cover shrink-0">
+                                <div class="flex-1 min-w-0">
+                                    <h4
+                                        class="text-xs font-bold text-slate-800 truncate group-hover:text-brand-600 transition">
+                                        [Naruto Project] Cần editor video ngắn</h4>
+                                    <div class="flex gap-1 mt-1">
+                                        <span
+                                            class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">Editor</span>
+                                        <span
+                                            class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">Cameraman</span>
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-1 flex items-center justify-between">
+                                        <span>📍 Hà Nội</span>
+                                        <span class="text-emerald-600 font-bold">5 ứng tuyển</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                                <i data-lucide="calendar" class="w-4 h-4 text-indigo-600"></i>
+                                Sự kiện sắp diễn ra
+                            </h3>
+                            <button onclick="switchView('events')"
+                                class="text-[11px] font-bold text-brand-600 hover:text-brand-700 flex items-center">
+                                Xem tất cả <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <div onclick="switchView('events')" class="flex gap-3 items-center group cursor-pointer">
+                                <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?w=120&auto=format&fit=crop&q=80"
+                                    class="w-12 h-12 rounded-xl object-cover shrink-0">
+                                <div class="flex-1 min-w-0">
+                                    <h4
+                                        class="text-xs font-bold text-slate-800 truncate group-hover:text-brand-600 transition">
+                                        Cosplay Festival Summer 2026</h4>
+                                    <div class="text-[11px] text-brand-600 font-semibold mt-0.5">15 - 16/09/2026</div>
+                                    <div class="text-[10px] text-slate-400 truncate">📍 Nhà thi đấu Phú Thọ, TP. HCM
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </aside>
+            </div>
+        </div>
+
+        <!-- ================= VIEW 2: THUÊ & MUA BÁN ================= -->
+        <div id="view-shop" class="spa-view hidden space-y-6">
+
+            <!-- Top banner + Nút Đăng Đồ Riêng -->
+            <div
+                class="bg-white p-6 rounded-3xl border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-xl font-black text-slate-900">Sàn Giao Dịch Cosplay Toàn Quốc</h1>
+                    <p class="text-xs text-slate-500 mt-1">Hơn 500+ trang phục cho thuê & đồ thanh lý pass lại từ cộng
+                        đồng cosplayer uy tín</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl">
+                        <button id="shop-mode-all" onclick="setShopMode('all')"
+                            class="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-white shadow-sm text-slate-900 transition">Tất
+                            cả</button>
+                        <button id="shop-mode-rent" onclick="setShopMode('rent')"
+                            class="px-3.5 py-1.5 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition">Chỉ
+                            đồ thuê</button>
+                        <button id="shop-mode-buy" onclick="setShopMode('buy')"
+                            class="px-3.5 py-1.5 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition">Bán
+                            thanh lý</button>
+                    </div>
+
+                    <button onclick="openModal('createShopListingModal')"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-brand-600/20 transition">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>+ Đăng đồ cho thuê / Bán pass</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2-Column Marketplace with Left Filters -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <aside class="lg:col-span-3 bg-white p-5 rounded-3xl border border-slate-200 space-y-6">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <span
+                            class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <i data-lucide="sliders" class="w-3.5 h-3.5 text-brand-600"></i> Bộ lọc sản phẩm
+                        </span>
+                        <button onclick="resetShopFilters()"
+                            class="text-[11px] font-semibold text-brand-600 hover:underline">Làm mới</button>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-slate-800 block mb-2">Size trang phục</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label
+                                class="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-xl cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" onchange="applyShopFilters()"
+                                    class="shop-size-filter rounded text-brand-600" value="Size S"> Size S
+                            </label>
+                            <label
+                                class="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-xl cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" onchange="applyShopFilters()"
+                                    class="shop-size-filter rounded text-brand-600" value="Size M"> Size M
+                            </label>
+                            <label
+                                class="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-xl cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" onchange="applyShopFilters()"
+                                    class="shop-size-filter rounded text-brand-600" value="Size L"> Size L
+                            </label>
+                            <label
+                                class="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-xl cursor-pointer hover:bg-slate-100">
+                                <input type="checkbox" onchange="applyShopFilters()"
+                                    class="shop-size-filter rounded text-brand-600" value="One-size"> One-size
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-slate-800 block mb-2">Danh mục món đồ</label>
+                        <select id="shopCategoryFilter" onchange="applyShopFilters()"
+                            class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-medium text-slate-700">
+                            <option value="all">Tất cả danh mục</option>
+                            <option value="Trang phục">Trang phục Cosplay</option>
+                            <option value="Tóc giả">Tóc giả / Wig</option>
+                            <option value="Vũ khí">Vũ khí & Prop</option>
+                            <option value="Giày">Giày dép</option>
+                            <option value="Phụ kiện">Phụ kiện & Trang sức</option>
+                            <option value="Studio">Studio Cosplay</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-slate-800 block mb-1">Khu vực (PostGIS Matching)</label>
+                        <p class="text-[11px] text-slate-400 mb-2">Độ lệch an toàn Fuzzy ±500m</p>
+                        <select id="shopLocationFilter" onchange="applyShopFilters()"
+                            class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none font-medium text-slate-700">
+                            <option value="all">Toàn quốc</option>
+                            <option value="Hà Nội">Hà Nội & Lân cận (≤ 15km)</option>
+                            <option value="TP. HCM">TP. Hồ Chí Minh (≤ 15km)</option>
+                            <option value="Đà Nẵng">Đà Nẵng</option>
+                            <option value="Hải Phòng">Hải Phòng</option>
+                        </select>
+                    </div>
+                </aside>
+
+                <!-- Right: Shop Products Grid (9 Cols) -->
+                <section class="lg:col-span-9 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span id="shopResultCount" class="text-xs font-bold text-slate-500">Hiển thị 10 sản phẩm</span>
+                        <select
+                            class="text-xs bg-white border border-slate-200 rounded-xl px-3 py-1.5 font-medium text-slate-700 outline-none">
+                            <option>Mới đăng nhất</option>
+                            <option>Giá thuê: Thấp đến Cao</option>
+                            <option>Giá thuê: Cao đến Thấp</option>
+                        </select>
+                    </div>
+
+                    <div id="shopProductGrid" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+        <!-- ================= VIEW 3: LẬP TEAM / TUYỂN STAFF ================= -->
+        <div id="view-teams" class="spa-view hidden space-y-6">
+            <div
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200">
+                <div>
+                    <h1 class="text-xl font-black text-slate-900">Lập Team Cosplay & Tuyển Dụng Staff</h1>
+                    <p class="text-xs text-slate-500 mt-1">Tìm đồng đội đi Festival, Makeup Artist, Photographer &
+                        Studio chuyên nghiệp</p>
+                </div>
+                <button onclick="openModal('createTeamModal')"
+                    class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-brand-600/20 transition flex items-center gap-2 shrink-0">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    <span>+ Đăng tin tuyển team / staff</span>
+                </button>
+            </div>
+
+            <div id="teamsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <!-- Rendered items -->
+            </div>
+        </div>
+
+        <!-- ================= VIEW 4: SỰ KIỆN & FESTIVAL ================= -->
+        <div id="view-events" class="spa-view hidden space-y-6">
+            <div
+                class="bg-gradient-to-r from-indigo-900 via-purple-900 to-brand-900 text-white p-8 sm:p-10 rounded-3xl relative overflow-hidden shadow-xl">
+                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div class="max-w-2xl space-y-3">
+                        <span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold">Lịch Lễ Hội
+                            Toàn Quốc 2026</span>
+                        <h1 class="text-2xl sm:text-4xl font-black leading-tight">Cosplay Festival Summer Expo 2026</h1>
+                        <p class="text-xs sm:text-sm text-slate-200">Sự kiện cosplay lớn nhất năm quy tụ hơn 500
+                            cosplayer khách mời, gian hàng merchandise và cuộc thi Cosplay Championship.</p>
+                        <div class="flex flex-wrap items-center gap-4 pt-2">
+                            <div class="text-xs font-bold bg-white text-slate-900 px-3.5 py-2 rounded-xl">📍 Phú Thọ,
+                                TP. HCM</div>
+                            <div class="text-xs font-bold bg-brand-600 text-white px-3.5 py-2 rounded-xl">🗓 15 - 16
+                                Tháng 9, 2026</div>
+                        </div>
+                    </div>
+
+                    <button onclick="openModal('createEventModal')"
+                        class="px-5 py-3 bg-white hover:bg-slate-100 text-brand-700 text-xs font-black rounded-2xl shadow-xl transition shrink-0 flex items-center gap-2">
+                        <i data-lucide="calendar-plus" class="w-4 h-4 text-brand-600"></i>
+                        <span>+ Đăng ký sự kiện / Festival mới</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="eventsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Event Cards -->
+            </div>
+        </div>
+
+        <!-- ================= VIEW 5: TRANG CÁ NHÂN (PROFILE) ================= -->
+        <div id="view-profile" class="spa-view hidden space-y-6">
+            <div
+                class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 flex flex-col sm:flex-row items-center sm:items-start gap-6 shadow-sm">
+                <img id="profileAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300"
+                    class="w-28 h-28 rounded-full object-cover ring-4 ring-brand-100 shadow-md">
+
+                <div class="flex-1 text-center sm:text-left space-y-2.5">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <h1 class="text-2xl font-black text-slate-900">
+                            <span id="profileDisplayName">Người dùng CosWorld</span>
+                            <span id="profileNickname" class="text-sm font-medium text-slate-400 ml-1.5">(@coser)</span>
+                        </h1>
+
+                        <span
+                            class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold self-center sm:self-auto flex items-center gap-1">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Tài khoản đã kích hoạt
+                        </span>
+
+                        <!-- Badge Điểm Uy Tín -->
+                        <div
+                            class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-bold self-center sm:self-auto shadow-sm">
+                            <i data-lucide="award" class="w-3.5 h-3.5 text-amber-600"></i>
+                            <span>Uy tín: <span id="profileRepScore" class="font-extrabold text-amber-700">100</span>
+                                điểm</span>
+                            <button onclick="boostReputation()"
+                                class="ml-1 text-[11px] text-brand-600 hover:text-brand-700 hover:underline font-semibold"
+                                title="Tích điểm uy tín cho người này">(+1 Vote)</button>
+                        </div>
+                    </div>
+
+                    <p id="profileBio" class="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
+                        Chưa có tiểu sử. Hãy nhấn nút "Chỉnh sửa trang cá nhân" để giới thiệu về bản thân.
+                    </p>
+
+                    <!-- Contact Deep Links (BẢO MẬT: KHÔNG LÀM LỘ SĐT VÀ LINK FB) -->
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-2">
+                        <div
+                            class="text-xs font-semibold text-slate-600 flex items-center gap-1 bg-slate-100 px-3 py-1.5 rounded-xl">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-600"></i> <span
+                                id="profileLocation">Hà Nội</span>
+                        </div>
+
+                        <!-- Nút liên kết Zalo an toàn -->
+                        <button onclick="connectZalo()"
+                            class="text-xs font-semibold flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3.5 py-1.5 rounded-xl hover:bg-blue-100 transition shadow-sm">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-blue-600"></i>
+                            <span>Nhắn Zalo</span>
+                        </button>
+
+                        <!-- Nút liên kết Facebook Messenger an toàn -->
+                        <button onclick="connectFacebook()"
+                            class="text-xs font-semibold flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-3.5 py-1.5 rounded-xl hover:bg-indigo-100 transition shadow-sm">
+                            <i data-lucide="send" class="w-3.5 h-3.5 text-indigo-600"></i>
+                            <span>Nhắn Messenger</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nút Chỉnh sửa trang cá nhân (chỉ chủ tài khoản) -->
+                <button onclick="openModal('editProfileModal')"
+                    class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-2xl transition flex items-center gap-1.5 shadow-md shadow-slate-900/20 shrink-0">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i>
+                    <span>Chỉnh sửa trang cá nhân</span>
+                </button>
+            </div>
+
+            <!-- Profile Tabs & Listing Inventory -->
+            <div class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
+                <div class="flex border-b border-slate-100 gap-8 text-xs font-bold">
+                    <button class="pb-3 border-b-2 border-brand-600 text-brand-600 flex items-center gap-1.5">
+                        <i data-lucide="box" class="w-4 h-4"></i> Đồ đang cho thuê (4)
+                    </button>
+                    <button
+                        class="pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-700 flex items-center gap-1.5">
+                        <i data-lucide="history" class="w-4 h-4"></i> Lịch sử thuê (38 đơn hoàn tất)
+                    </button>
+                    <button
+                        class="pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-700 flex items-center gap-1.5">
+                        <i data-lucide="star" class="w-4 h-4"></i> Đánh giá nhận được (18 lượt ★ 5.0)
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
+                    <div class="border border-slate-200 rounded-2xl p-2.5 space-y-2 hover:border-brand-500 transition">
+                        <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300"
+                            class="aspect-square w-full rounded-xl object-cover">
+                        <div class="text-xs font-bold truncate">Fullset Raiden Shogun</div>
+                        <div class="text-xs font-extrabold text-brand-600">150.000đ/ngày</div>
+                        <span
+                            class="inline-block text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md font-bold">Đang
+                            hiển thị</span>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-2xl p-2.5 space-y-2 hover:border-brand-500 transition">
+                        <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=300"
+                            class="aspect-square w-full rounded-xl object-cover">
+                        <div class="text-xs font-bold truncate">Studio Cyberpunk RGB Neon</div>
+                        <div class="text-xs font-extrabold text-brand-600">250.000đ/giờ</div>
+                        <span
+                            class="inline-block text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md font-bold">Đang
+                            hiển thị</span>
+                    </div>
+
+                    <div class="border border-slate-200 rounded-2xl p-2.5 space-y-2 hover:border-brand-500 transition">
+                        <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300"
+                            class="aspect-square w-full rounded-xl object-cover">
+                        <div class="text-xs font-bold truncate">Set Váy Maid Cổ Điển</div>
+                        <div class="text-xs font-extrabold text-brand-600">80.000đ/ngày</div>
+                        <span
+                            class="inline-block text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md font-bold">Đang
+                            hiển thị</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= MODAL: CHỈNH SỬA PROFILE (CHỈ CHỦ TÀI KHOẢN) ================= -->
+    <div id="editProfileModal"
+        class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+        <div
+            class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h2 class="text-lg font-black text-slate-900">Chỉnh sửa trang cá nhân</h2>
+                    <p class="text-xs text-slate-400">Chỉ bạn mới có quyền thay đổi thông tin này</p>
+                </div>
+                <button onclick="closeModal('editProfileModal')"
+                    class="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleEditProfileSubmit(event)" class="space-y-3.5 text-xs">
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Tên hiển thị (Display Name)</label>
+                    <input id="editDisplayName" required type="text" placeholder="Ví dụ: Vũ Quân, Mika Cosplay..."
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Biệt danh / Nickname</label>
+                    <input id="editNickname" type="text" placeholder="Ví dụ: QuanCoser, Mèo Con..."
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Tiểu sử (Bio)</label>
+                    <textarea id="editBio" rows="3"
+                        placeholder="Mô tả kinh nghiệm cosplay, dòng trang phục bạn chuyên cho thuê..."
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium"></textarea>
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Khu vực hoạt động</label>
+                    <input id="editLocation" type="text" placeholder="Ví dụ: Cầu Giấy, Hà Nội"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                </div>
+
+                <div class="pt-2 flex items-center justify-end gap-2">
+                    <button type="button" onclick="closeModal('editProfileModal')"
+                        class="px-4 py-2.5 text-xs font-bold rounded-xl text-slate-500 hover:bg-slate-100 transition">
+                        Hủy
+                    </button>
+                    <button type="submit"
+                        class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: AUTHENTICATION (ĐĂNG NHẬP / ĐĂNG KÝ) ================= -->
+    <div id="authModal"
+        class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+        <div
+            class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 space-y-5">
+
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h2 id="authModalTitle" class="text-lg font-black text-slate-900">Đăng nhập tài khoản</h2>
+                    <p id="authModalSubtitle" class="text-xs text-slate-500">Điền tài khoản để bắt đầu trải nghiệm</p>
+                </div>
+                <button onclick="closeModal('authModal')"
+                    class="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Auth Tabs Switcher -->
+            <div class="flex bg-slate-100 p-1 rounded-2xl text-xs font-bold">
+                <button id="authTabLogin" onclick="toggleAuthTab('login')"
+                    class="flex-1 py-2 rounded-xl bg-white shadow-sm text-slate-900 transition">Đăng nhập</button>
+                <button id="authTabRegister" onclick="toggleAuthTab('register')"
+                    class="flex-1 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition">Đăng ký mới</button>
+            </div>
+
+            <!-- Form Đăng nhập (Chỉ cần tài khoản & mật khẩu) -->
+            <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-3.5 text-xs">
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Tên đăng nhập</label>
+                    <input id="loginUsername" required type="text" placeholder="Nhập tên đăng nhập bất kỳ để test..."
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Mật khẩu</label>
+                    <input id="loginPassword" required type="password" placeholder="••••••••"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                </div>
+                <button type="submit"
+                    class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition">
+                    Đăng nhập
+                </button>
+            </form>
+
+            <!-- Form Đăng ký (Tên đăng nhập không hiện ở profile, đổi tên ở profile) -->
+            <form id="registerForm" onsubmit="handleRegisterSubmit(event)" class="hidden space-y-3 text-xs">
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Tên đăng nhập <span
+                            class="text-slate-400 font-normal">(chỉ dùng để đăng nhập, không hiện ở
+                            profile)</span></label>
+                    <input id="regUsername" required type="text" placeholder="Ví dụ: quancoser, mika123..."
+                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Mật khẩu</label>
+                    <input id="regPassword" required type="password" placeholder="••••••••"
+                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Email <span
+                            class="text-slate-400 font-normal">(gửi mã khôi phục khi mất tài khoản)</span></label>
+                    <input id="regEmail" required type="email" placeholder="email@domain.com"
+                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Số điện thoại <span
+                                class="text-brand-600 font-normal">(liên kết Zalo)</span></label>
+                        <input id="regPhone" required type="text" placeholder="0987xxxxxx"
+                            class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Link Facebook <span
+                                class="text-brand-600 font-normal">(liên kết Messenger)</span></label>
+                        <input id="regFb" required type="text" placeholder="fb.com/username"
+                            class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Địa chỉ (Công khai)</label>
+                    <input id="regLocation" required type="text" placeholder="Ví dụ: Cầu Giấy, Hà Nội"
+                        class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                </div>
+
+                <div class="p-2 bg-slate-100 rounded-xl text-[11px] text-slate-500 flex gap-1.5 items-center">
+                    <i data-lucide="shield" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                    <span>Không yêu cầu CCCD. SĐT và Facebook được bảo mật, chỉ mở liên kết chat khi bấm nút.</span>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition">
+                    Hoàn tất đăng ký & Đăng nhập
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- ================= MODAL: CHI TIẾT & ĐẶT LỊCH THUÊ ================= -->
+    <div id="bookingModal"
+        class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+        <div
+            class="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                    <span id="modalListingId"
+                        class="bg-brand-100 text-brand-700 px-2.5 py-0.5 rounded-full font-bold">Mã #CW-8921</span>
+                    <span>•</span>
+                    <span id="modalLocation">Fuzzy Location: Đống Đa, HN (±500m)</span>
+                </div>
+                <button onclick="closeModal('bookingModal')"
+                    class="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-y-auto">
+                <div class="lg:col-span-7 p-6 border-b lg:border-b-0 lg:border-r border-slate-100 space-y-5">
+                    <div class="aspect-[16/11] bg-slate-100 rounded-2xl overflow-hidden relative">
+                        <img id="modalImg" src="" class="w-full h-full object-cover">
+                        <div
+                            class="absolute bottom-3 right-3 bg-slate-950/75 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm font-semibold">
+                            Cloudflare R2 Storage
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span id="modalSize"
+                                class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700">Size
+                                S/M</span>
+                            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-700">Buffer: 1
+                                ngày bảo dưỡng/giặt sấy</span>
+                        </div>
+                        <h2 id="modalTitle" class="text-xl font-bold text-slate-900 leading-snug">Chi tiết</h2>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                            Trang phục cao cấp / Không gian chụp set up chuyên nghiệp, hệ thống đèn RGB đầy đủ, hỗ trợ
+                            điều hòa và phòng thay đồ rộng rãi.
+                        </p>
+                    </div>
+
+                    <div
+                        class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100"
+                                class="w-11 h-11 rounded-full object-cover ring-2 ring-white">
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-sm font-bold text-slate-800">Mai Anh</span>
+                                    <i data-lucide="check-circle-2"
+                                        class="w-3.5 h-3.5 text-blue-500 fill-blue-500 text-white"></i>
+                                </div>
+                                <div class="text-[11px] text-slate-500">Đã cho thuê 38 lượt • Phản hồi 5 phút</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button onclick="handleZaloChat('0987654321', 'CW-8921')"
+                                class="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition flex items-center gap-1">
+                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                                <span>Zalo</span>
+                            </button>
+                            <button onclick="handleFbChat('maianh.cos', 'CW-8921')"
+                                class="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300 transition flex items-center gap-1">
+                                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                                <span>Mess</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 p-6 flex flex-col justify-between bg-slate-50/40">
+                    <div class="space-y-4">
+                        <div>
+                            <div class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">1. Thời gian
+                                thuê (Calendar Lock)</div>
+
+                            <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm text-xs">
+                                <div class="flex items-center justify-between mb-2 font-bold text-slate-800 px-1">
+                                    <span>Tháng 9, 2026</span>
+                                    <div class="flex gap-1 text-slate-400">
+                                        <i data-lucide="chevron-left" class="w-4 h-4 cursor-pointer"></i>
+                                        <i data-lucide="chevron-right"
+                                            class="w-4 h-4 cursor-pointer text-slate-800"></i>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="grid grid-cols-7 gap-1 text-center font-bold text-slate-400 mb-1 text-[11px]">
+                                    <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+                                </div>
+
+                                <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                                    <span class="p-1.5 text-slate-300">29</span>
+                                    <span class="p-1.5 text-slate-300">30</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">1</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">2</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">3</span>
+                                    <span
+                                        class="p-1.5 bg-rose-100 text-rose-500 rounded-lg font-semibold cursor-not-allowed line-through">4</span>
+                                    <span
+                                        class="p-1.5 bg-rose-100 text-rose-500 rounded-lg font-semibold cursor-not-allowed line-through">5</span>
+
+                                    <span
+                                        class="p-1.5 bg-amber-100 text-amber-700 rounded-lg font-semibold cursor-not-allowed">6</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">7</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">8</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">9</span>
+                                    <span class="p-1.5 bg-brand-600 text-white rounded-l-lg font-bold">10</span>
+                                    <span class="p-1.5 bg-brand-500 text-white font-bold">11</span>
+                                    <span class="p-1.5 bg-brand-600 text-white rounded-r-lg font-bold">12</span>
+
+                                    <span class="p-1.5 bg-amber-100 text-amber-700 rounded-lg font-semibold">13</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">14</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">15</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">16</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">17</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">18</span>
+                                    <span class="p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer">19</span>
+                                </div>
+
+                                <div
+                                    class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500">
+                                    <span class="flex items-center gap-1"><span
+                                            class="w-2 h-2 rounded bg-brand-600 inline-block"></span> Đang chọn</span>
+                                    <span class="flex items-center gap-1"><span
+                                            class="w-2 h-2 rounded bg-rose-200 inline-block"></span> Đã khóa</span>
+                                    <span class="flex items-center gap-1"><span
+                                            class="w-2 h-2 rounded bg-amber-200 inline-block"></span> Buffer</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price Breakdown -->
+                        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-1.5 text-xs">
+                            <div class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">2. Tạm tính
+                                offline</div>
+                            <div class="flex justify-between text-slate-600">
+                                <span>Giá thuê (<span id="modalPriceLabel">150k</span> × 3 ngày/buổi):</span>
+                                <span id="modalRentalTotal" class="font-bold text-slate-800">450.000đ</span>
+                            </div>
+                            <div class="flex justify-between text-slate-600">
+                                <span>Tiền cọc giữ chỗ:</span>
+                                <span id="modalDepositTotal" class="font-bold text-slate-800">500.000đ</span>
+                            </div>
+                            <div
+                                class="flex justify-between text-emerald-600 font-medium pt-1 border-t border-slate-100">
+                                <span>Phí CosWorld:</span>
+                                <span class="font-bold">0đ (Miễn phí kết nối)</span>
+                            </div>
+                            <div
+                                class="flex justify-between text-sm font-black text-slate-900 pt-1.5 border-t border-slate-200">
+                                <span>Tổng chuẩn bị khi gặp mặt:</span>
+                                <span id="modalGrandTotal" class="text-brand-600">950.000đ</span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="p-2.5 bg-amber-50 rounded-xl border border-amber-200/60 text-[11px] text-amber-800 flex gap-2">
+                            <i data-lucide="shield-alert" class="w-4 h-4 shrink-0 text-amber-600 mt-0.5"></i>
+                            <p>Thanh toán và hoàn cọc diễn ra trực tiếp giữa 2 bên khi giao nhận đồ.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button onclick="confirmBooking()"
+                            class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                            <span>Xác nhận đặt lịch</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: ĐĂNG ĐỒ (MỤC THUÊ & MUA BÁN) ================= -->
+    <div id="createShopListingModal"
+        class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+        <div
+            class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h2 class="text-lg font-black text-slate-900">Đăng trang phục / Studio</h2>
+                    <p class="text-[11px] text-slate-400">Dành riêng cho mục Thuê & Mua bán</p>
+                </div>
+                <button onclick="closeModal('createShopListingModal')"
+                    class="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleCreateShopListing(event)" class="space-y-3.5 text-xs">
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Tên trang phục / Tên Studio</label>
+                    <input id="newShopTitle" required type="text" placeholder="Ví dụ: Fullset Furina Archon + Wig style"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Hình thức</label>
+                        <select id="newShopType"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none bg-white font-medium">
+                            <option value="rent">Cho thuê theo ngày</option>
+                            <option value="buy">Bán thanh lý (Pass đồ)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Danh mục</label>
+                        <select id="newShopCategory"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none bg-white font-medium">
+                            <option value="Trang phục">Trang phục</option>
+                            <option value="Tóc giả">Tóc giả / Wig</option>
+                            <option value="Vũ khí">Vũ khí & Prop</option>
+                            <option value="Giày">Giày dép</option>
+                            <option value="Phụ kiện">Phụ kiện</option>
+                            <option value="Studio">Studio Cosplay</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Size / Loại phòng</label>
+                        <select id="newShopSize"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none bg-white font-medium">
+                            <option value="Size S">Size S</option>
+                            <option value="Size M">Size M</option>
+                            <option value="Size L">Size L</option>
+                            <option value="One-size">One-size</option>
+                            <option value="Studio 60m²">Studio 60m²</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Giá (VNĐ/ngày hoặc giá bán)</label>
+                        <input id="newShopPrice" required type="number" placeholder="150000"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Tiền cọc (VNĐ)</label>
+                        <input id="newShopDeposit" required type="number" placeholder="300000"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Khu vực (Fuzzy Location)</label>
+                        <input id="newShopLocation" required type="text" placeholder="Ví dụ: Cầu Giấy, Hà Nội"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit"
+                        class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition">
+                        Đăng lên sàn Thuê & Mua bán
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: ĐĂNG TIN TUYỂN (MỤC LẬP TEAM / STAFF) ================= -->
+    <div id="createTeamModal"
+        class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+        <div
+            class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h2 class="text-lg font-black text-slate-900">Đăng tin Tuyển Team / Staff</h2>
+                    <p class="text-[11px] text-slate-400">Dành cho mục Lập team / Tuyển staff</p>
+                </div>
+                <button onclick="closeModal('createTeamModal')"
+                    class="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleCreateTeamListing(event)" class="space-y-3.5 text-xs">
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Tiêu đề tin tuyển</label>
+                    <input id="teamTitle" required type="text"
+                        placeholder="Ví dụ: [TP.HCM] Tuyển Photographer chụp ngoại cảnh Honkai Star Rail"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Vị trí cần tuyển</label>
+                        <select id="teamRole"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none bg-white font-medium">
+                            <option value="Cosplayer">Cosplayer</option>
+                            <option value="Photographer">Photographer</option>
+                            <option value="Makeup Artist">Makeup Artist</option>
+                            <option value="Cameraman / Editor">Cameraman / Editor</option>
+                            <option value="Hỗ trợ Staff">Hỗ trợ Staff đi Fes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Khu vực</label>
+                        <input id="teamLocation" required type="text" placeholder="Ví dụ: Hà Nội hoặc TP. HCM"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Thù lao / Hỗ trợ</label>
+                        <input id="teamBudget" required type="text" placeholder="Ví dụ: 800k/buổi hoặc Share tiền phòng"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Hạn chót ứng tuyển</label>
+                        <input id="teamDeadline" required type="text" placeholder="Ví dụ: 20/09/2026"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Mô tả yêu cầu chi tiết</label>
+                    <textarea id="teamDesc" required rows="3"
+                        placeholder="Chi tiết thời gian, địa điểm tập trung, yêu cầu kinh nghiệm..."
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none"></textarea>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit"
+                        class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition">
+                        Đăng tin tuyển dụng ngay
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: ĐĂNG SỰ KIỆN (MỤC SỰ KIỆN & FESTIVAL) ================= -->
+    <div id="createEventModal"
+        class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+        <div
+            class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-200 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h2 class="text-lg font-black text-slate-900">Đăng ký Sự kiện / Festival</h2>
+                    <p class="text-[11px] text-slate-400">Dành cho mục Sự kiện & Festival</p>
+                </div>
+                <button onclick="closeModal('createEventModal')"
+                    class="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleCreateEventListing(event)" class="space-y-3.5 text-xs">
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Tên lễ hội / Sự kiện</label>
+                    <input id="eventName" required type="text" placeholder="Ví dụ: Japan Manga & Anime Expo 2026"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Thời gian tổ chức</label>
+                        <input id="eventDate" required type="text" placeholder="Ví dụ: 12 - 13/11/2026"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Hình thức vé</label>
+                        <select id="eventType"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none bg-white font-medium">
+                            <option value="Đang mở bán vé">Đang mở bán vé</option>
+                            <option value="Vào cửa tự do">Vào cửa tự do</option>
+                            <option value="Sắp diễn ra">Sắp diễn ra</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="font-bold text-slate-700 block mb-1">Địa điểm tổ chức</label>
+                    <input id="eventVenue" required type="text"
+                        placeholder="Ví dụ: Trung tâm Triển lãm Quốc tế I.C.E, Hà Nội"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-brand-500 outline-none font-medium">
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit"
+                        class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition">
+                        Gửi kiểm duyệt sự kiện
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast"
+        class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition duration-300 pointer-events-none">
+        <div
+            class="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-bold border border-slate-700">
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+            <span id="toastMsg">Thành công!</span>
+        </div>
+    </div>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500 mt-12">
+        <div class="max-w-[1600px] mx-auto px-4 space-y-2">
+            <div class="flex items-center justify-center gap-2 font-bold text-slate-700">
+                <span>CosWorld Platform</span> • <span>Next.js App Router</span> • <span>PostgreSQL PostGIS</span>
+            </div>
+            <p>© 2026 CosWorld — Nền tảng kết nối cộng đồng Cosplay P2P tại Việt Nam.</p>
+        </div>
+    </footer>
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // State Quản lý Tài khoản hiện tại
+        let currentUser = null;
+
+        // Dữ liệu Mock ban đầu
+        let listingsData = [
+            {
+                id: 'CW-8921',
+                title: 'Bộ Raiden Shogun Genshin Impact (Fullset)',
+                category: 'Trang phục',
+                size: 'Size S',
+                type: 'rent',
+                price: 150000,
+                deposit: 500000,
+                location: 'Hà Nội',
+                time: '5 phút trước',
+                img: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            },
+            {
+                id: 'CW-4412',
+                title: 'Tóc giả Hatsune Miku kẹp dài 80cm',
+                category: 'Tóc giả',
+                size: 'One-size',
+                type: 'rent',
+                price: 60000,
+                deposit: 200000,
+                location: 'TP. HCM',
+                time: '15 phút trước',
+                img: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            },
+            {
+                id: 'CW-3129',
+                title: 'Kiếm Kamisato Ayaka Prop Gỗ Sơn Bóng',
+                category: 'Vũ khí',
+                size: 'One-size',
+                type: 'buy',
+                price: 850000,
+                deposit: 0,
+                location: 'Đà Nẵng',
+                time: '1 giờ trước',
+                img: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            },
+            {
+                id: 'CW-8833',
+                title: 'Studio Cyberpunk Neon RGB Chuyên Chụp Cosplay',
+                category: 'Studio',
+                size: 'Studio 60m²',
+                type: 'rent',
+                price: 250000,
+                deposit: 200000,
+                location: 'Hà Nội',
+                time: '1 giờ trước',
+                img: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            },
+            {
+                id: 'CW-7721',
+                title: 'Giày cosplay Demon Slayer size 42',
+                category: 'Giày',
+                size: 'Size L',
+                type: 'rent',
+                price: 50000,
+                deposit: 150000,
+                location: 'Hải Phòng',
+                time: '2 giờ trước',
+                img: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            },
+            {
+                id: 'CW-1102',
+                title: 'Áo choàng Akatsuki Naruto vải dày',
+                category: 'Trang phục',
+                size: 'Size L',
+                type: 'buy',
+                price: 300000,
+                deposit: 0,
+                location: 'Hà Nội',
+                time: '3 giờ trước',
+                img: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            },
+            {
+                id: 'CW-6654',
+                title: 'Tóc giả Zhongli vuốt form sẵn cực nét',
+                category: 'Tóc giả',
+                size: 'One-size',
+                type: 'rent',
+                price: 70000,
+                deposit: 250000,
+                location: 'TP. HCM',
+                time: '4 giờ trước',
+                img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            },
+            {
+                id: 'CW-5521',
+                title: 'Quạt Genshin Impact Nan Gỗ Cổ Trang',
+                category: 'Phụ kiện',
+                size: 'One-size',
+                type: 'buy',
+                price: 200000,
+                deposit: 0,
+                location: 'Đà Nẵng',
+                time: '5 giờ trước',
+                img: 'https://images.unsplash.com/photo-1533158326339-7f3cf2404354?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            },
+            {
+                id: 'CW-9912',
+                title: 'Set Váy Maid Pháp Ren Đen Trắng Cổ Điển',
+                category: 'Trang phục',
+                size: 'Size M',
+                type: 'rent',
+                price: 80000,
+                deposit: 300000,
+                location: 'Hà Nội',
+                time: '6 giờ trước',
+                img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            },
+            {
+                id: 'CW-2041',
+                title: 'Fullset Hutao Genshin + Trượng Hộ Ma Prop',
+                category: 'Trang phục',
+                size: 'Size S',
+                type: 'rent',
+                price: 130000,
+                deposit: 400000,
+                location: 'Hà Nội',
+                time: '7 giờ trước',
+                img: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            }
+        ];
+
+        let teamsData = [
+            {
+                id: 1,
+                title: '[TP.HCM] Tuyển Full Cast Nữ Genshin đi Fes Summer 2026',
+                desc: 'Đã có Furina, Raiden, Hu Tao. Cần thêm 1 Arlecchino và 1 Yelan. Team hỗ trợ tiền vé và studio chụp sau fes.',
+                roles: ['Cosplayer', 'Makeup Artist'],
+                location: 'TP. HCM',
+                budget: 'Hỗ trợ vé & studio',
+                deadline: '10/09/2026',
+                author: 'Yukari',
+                authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=60'
+            },
+            {
+                id: 2,
+                title: '[Hà Nội] Cần 1 Photographer chụp ngoại cảnh Concept Wuthering Waves',
+                desc: 'Thời gian chụp: Chiều thứ 7 (14h-17h) tại Công viên Yên Sở. Yêu cầu có kinh nghiệm chụp blend màu tone dark-fantasy.',
+                roles: ['Photographer'],
+                location: 'Hà Nội',
+                budget: '800k/buổi',
+                deadline: '15/09/2026',
+                author: 'Kaito',
+                authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60'
+            }
+        ];
+
+        let eventsData = [
+            {
+                id: 1,
+                name: 'Ani-Cosplay Day Đà Nẵng 2026',
+                venue: 'Cung Hội nghị Quốc tế Ariyana',
+                date: '29/09/2026',
+                type: 'Đang mở bán vé',
+                img: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=500'
+            },
+            {
+                id: 2,
+                name: 'Hanoi Autumn Cosplay Fest',
+                venue: 'Cung VHTT Hữu nghị Việt Xô',
+                date: '10/10/2026',
+                type: 'Sắp diễn ra',
+                img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500'
+            },
+            {
+                id: 3,
+                name: 'Akiba Manga & Anime Festival',
+                venue: 'AEON Mall Hà Đông, Hà Nội',
+                date: '25/10/2026',
+                type: 'Vào cửa tự do',
+                img: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=500'
+            }
+        ];
+
+        let currentHomeCategory = null;
+        let currentShopMode = 'all';
+
+        // 1. AUTHENTICATION LOGIC (ĐĂNG NHẬP / ĐĂNG KÝ)
+        function openAuthModal(mode) {
+            toggleAuthTab(mode);
+            openModal('authModal');
+        }
+
+        function toggleAuthTab(mode) {
+            const loginTab = document.getElementById('authTabLogin');
+            const regTab = document.getElementById('authTabRegister');
+            const loginForm = document.getElementById('loginForm');
+            const regForm = document.getElementById('registerForm');
+            const title = document.getElementById('authModalTitle');
+            const subtitle = document.getElementById('authModalSubtitle');
+
+            if (mode === 'login') {
+                loginTab.className = "flex-1 py-2 rounded-xl bg-white shadow-sm text-slate-900 transition";
+                regTab.className = "flex-1 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition";
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+                title.innerText = "Đăng nhập tài khoản";
+                subtitle.innerText = "Điền tài khoản để bắt đầu trải nghiệm";
+            } else {
+                regTab.className = "flex-1 py-2 rounded-xl bg-white shadow-sm text-slate-900 transition";
+                loginTab.className = "flex-1 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition";
+                regForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                title.innerText = "Đăng ký thành viên";
+                subtitle.innerText = "Điền thông tin liên hệ để giao dịch offline an toàn";
+            }
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+
+            // Tên đăng nhập dùng cho login, tên hiển thị mặc định bằng username lúc đầu
+            currentUser = {
+                username: username,
+                displayName: username,
+                nickname: `@${username.toLowerCase()}`,
+                bio: `Coser đam mê anime/manga. Địa chỉ hoạt động tại Hà Nội. Rất vui được giao lưu kết nối!`,
+                email: `${username.toLowerCase()}@cosworld.vn`,
+                phone: '0987654321',
+                facebook: `mika.cos`,
+                location: 'Hà Nội',
+                reputation: 100,
+                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300'
+            };
+
+            applyUserSession();
+            closeModal('authModal');
+            showToast(`Chào mừng bạn quay trở lại, ${currentUser.displayName}!`);
+            e.target.reset();
+        }
+
+        function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const username = document.getElementById('regUsername').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const fb = document.getElementById('regFb').value.trim();
+            const location = document.getElementById('regLocation').value.trim();
+
+            // Tên đăng nhập chỉ để login, Tên hiển thị mặc định lấy từ username
+            currentUser = {
+                username: username,
+                displayName: username,
+                nickname: `@${username.toLowerCase()}`,
+                bio: `Thành viên mới của cộng đồng CosWorld. Khu vực hoạt động tại ${location}.`,
+                email: email,
+                phone: phone,
+                facebook: fb,
+                location: location,
+                reputation: 100,
+                avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300'
+            };
+
+            applyUserSession();
+            closeModal('authModal');
+            showToast(`Đăng ký thành công! Bạn có thể chỉnh sửa Tên hiển thị trong Profile.`);
+            e.target.reset();
+        }
+
+        function applyUserSession() {
+            if (currentUser) {
+                document.getElementById('guestSection').classList.add('hidden');
+                document.getElementById('userSection').classList.remove('hidden');
+                document.getElementById('userSection').classList.add('flex');
+
+                // Cập nhật Topbar
+                document.getElementById('topbarDisplayName').innerText = currentUser.displayName;
+                document.getElementById('topbarAvatar').src = currentUser.avatar;
+
+                // Cập nhật Profile view
+                document.getElementById('profileDisplayName').innerText = currentUser.displayName;
+                document.getElementById('profileNickname').innerText = currentUser.nickname;
+                document.getElementById('profileAvatar').src = currentUser.avatar;
+                document.getElementById('profileLocation').innerText = currentUser.location;
+                document.getElementById('profileBio').innerText = currentUser.bio;
+                document.getElementById('profileRepScore').innerText = currentUser.reputation;
+
+                // Điền sẵn dữ liệu vào modal Edit Profile
+                document.getElementById('editDisplayName').value = currentUser.displayName;
+                document.getElementById('editNickname').value = currentUser.nickname.replace('@', '');
+                document.getElementById('editBio').value = currentUser.bio;
+                document.getElementById('editLocation').value = currentUser.location;
+            }
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('guestSection').classList.remove('hidden');
+            document.getElementById('userSection').classList.add('hidden');
+            document.getElementById('userSection').classList.remove('flex');
+            switchView('home');
+            showToast("Đã đăng xuất tài khoản.");
+        }
+
+        // 2. CHỈNH SỬA PROFILE (CHỈ CHỦ TÀI KHOẢN)
+        function handleEditProfileSubmit(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const newDisplayName = document.getElementById('editDisplayName').value.trim();
+            const newNickname = document.getElementById('editNickname').value.trim();
+            const newBio = document.getElementById('editBio').value.trim();
+            const newLocation = document.getElementById('editLocation').value.trim();
+
+            currentUser.displayName = newDisplayName;
+            currentUser.nickname = newNickname.startsWith('@') ? newNickname : `@${newNickname}`;
+            currentUser.bio = newBio;
+            currentUser.location = newLocation;
+
+            applyUserSession();
+            closeModal('editProfileModal');
+            showToast("Đã cập nhật thông tin trang cá nhân thành công!");
+        }
+
+        // Tích điểm uy tín
+        function boostReputation() {
+            if (!currentUser) {
+                showToast("Vui lòng đăng nhập để tích điểm uy tín!");
+                return;
+            }
+            currentUser.reputation += 1;
+            document.getElementById('profileRepScore').innerText = currentUser.reputation;
+            showToast("Đã cộng 1 điểm uy tín cho thành viên!");
+        }
+
+        // BẢO MẬT: Kết nối Zalo / FB mà KHÔNG để lộ số điện thoại & link cụ thể
+        function connectZalo() {
+            if (!currentUser || !currentUser.phone) {
+                showToast("Thành viên chưa cấu hình số điện thoại Zalo.");
+                return;
+            }
+            const rawPhone = currentUser.phone.replace(/[^0-9]/g, '');
+            showToast("Đang mở ứng dụng Zalo để kết nối trao đổi...");
+            setTimeout(() => {
+                window.open(`https://zalo.me/${rawPhone}`, '_blank');
+            }, 700);
+        }
+
+        function connectFacebook() {
+            if (!currentUser || !currentUser.facebook) {
+                showToast("Thành viên chưa cấu hình Facebook.");
+                return;
+            }
+            let fbId = currentUser.facebook.trim();
+            fbId = fbId.replace(/^https?:\/\/(www\.)?(facebook\.com|fb\.com|m\.me)\//, '');
+            showToast("Đang chuyển hướng sang Messenger Facebook...");
+            setTimeout(() => {
+                window.open(`https://m.me/${fbId}`, '_blank');
+            }, 700);
+        }
+
+        // 3. SPA VIEW SWITCHER
+        function switchView(viewName) {
+            if (viewName === 'profile' && !currentUser) {
+                openAuthModal('login');
+                showToast("Vui lòng đăng nhập để xem thông tin trang cá nhân!");
+                return;
+            }
+
+            document.querySelectorAll('.spa-view').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('border-brand-600', 'text-brand-600');
+                tab.classList.add('border-transparent', 'text-slate-600');
+            });
+
+            const targetView = document.getElementById(`view-${viewName}`);
+            if (targetView) targetView.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${viewName}`);
+            if (activeNav) {
+                activeNav.classList.remove('border-transparent', 'text-slate-600');
+                activeNav.classList.add('border-brand-600', 'text-brand-600');
+            }
+
+            if (viewName === 'shop') {
+                renderShopListings(listingsData);
+            } else if (viewName === 'home') {
+                renderHomeListings(listingsData);
+            } else if (viewName === 'teams') {
+                renderTeams();
+            } else if (viewName === 'events') {
+                renderEvents();
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 4. RENDER VIEWS
+        function renderHomeListings(items) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+            document.getElementById('itemCountBadge').innerText = `${items.length} sản phẩm`;
+
+            if (items.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 text-sm font-semibold">Không tìm thấy món đồ nào phù hợp</div>`;
+                return;
+            }
+
+            items.forEach(item => grid.appendChild(createCardElement(item)));
+            lucide.createIcons();
+        }
+
+        function renderShopListings(items) {
+            const grid = document.getElementById('shopProductGrid');
+            grid.innerHTML = '';
+            document.getElementById('shopResultCount').innerText = `Hiển thị ${items.length} sản phẩm`;
+
+            if (items.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 text-sm font-semibold">Không có kết quả khớp với bộ lọc</div>`;
+                return;
+            }
+
+            items.forEach(item => grid.appendChild(createCardElement(item)));
+            lucide.createIcons();
+        }
+
+        function createCardElement(item) {
+            const card = document.createElement('div');
+            card.className = "bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col group";
+            card.onclick = () => openBookingModal(item);
+
+            const isRent = item.type === 'rent';
+
+            card.innerHTML = `
+        <div class="relative aspect-square bg-slate-100 overflow-hidden">
+          <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+          <span class="absolute top-2 left-2 ${isRent ? 'bg-brand-600' : 'bg-indigo-600'} text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+            ${isRent ? 'Thuê' : 'Pass lại'}
+          </span>
+          <span class="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-sm text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
+            ${item.size}
+          </span>
+          <button class="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white ${item.liked ? 'text-rose-500 fill-rose-500' : 'text-slate-600'} transition" onclick="toggleLike(event, '${item.id}')">
+            <i data-lucide="heart" class="w-3.5 h-3.5 ${item.liked ? 'fill-rose-500 text-rose-500' : ''}"></i>
+          </button>
+        </div>
+        <div class="p-3 flex-1 flex flex-col justify-between">
+          <div>
+            <h3 class="text-xs font-bold text-slate-900 line-clamp-2 leading-tight group-hover:text-brand-600 transition">
+              ${item.title}
+            </h3>
+            <div class="text-[13px] font-black text-brand-600 mt-1.5">
+              ${item.price.toLocaleString('vi-VN')}đ
+              <span class="text-[10px] font-normal text-slate-500">${isRent ? (item.category === 'Studio' ? '/giờ' : '/ngày') : ''}</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100">
+            <span class="flex items-center gap-0.5"><i data-lucide="map-pin" class="w-2.5 h-2.5"></i> ${item.location}</span>
+            <span>${item.time}</span>
+          </div>
+        </div>
+      `;
+            return card;
+        }
+
+        function renderTeams() {
+            const container = document.getElementById('teamsContainer');
+            container.innerHTML = '';
+            teamsData.forEach(team => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-5 rounded-3xl border border-slate-200 space-y-3.5 hover:border-brand-500 transition shadow-sm";
+                div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-1 text-[10px] font-bold bg-pink-50 text-brand-700 rounded-full">Tuyển ${team.roles[0]}</span>
+            <span class="text-xs text-slate-400 font-medium">Hạn: ${team.deadline}</span>
+          </div>
+          <h3 class="font-bold text-sm text-slate-900 leading-snug">${team.title}</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">${team.desc}</p>
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            ${team.roles.map(r => `<span class="text-[10px] font-semibold bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-lg">${r}</span>`).join('')}
+            <span class="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-lg">${team.budget}</span>
+          </div>
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <img src="${team.authorAvatar}" class="w-7 h-7 rounded-full object-cover">
+              <div>
+                <span class="text-xs font-bold text-slate-800 block leading-tight">${team.author}</span>
+                <span class="text-[10px] text-slate-400">📍 ${team.location}</span>
+              </div>
+            </div>
+            <button onclick="showToast('Đã gửi thông tin ứng tuyển của bạn!')" class="px-3.5 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 text-xs font-bold rounded-xl transition">
+              Ứng tuyển ngay
+            </button>
+          </div>
+        `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function renderEvents() {
+            const container = document.getElementById('eventsContainer');
+            container.innerHTML = '';
+            eventsData.forEach(ev => {
+                const div = document.createElement('div');
+                div.className = "bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col";
+                div.innerHTML = `
+          <img src="${ev.img}" class="h-48 w-full object-cover">
+          <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="text-xs font-bold text-brand-600">${ev.type}</div>
+              <h3 class="font-bold text-sm text-slate-900 mt-1">${ev.name}</h3>
+              <p class="text-xs text-slate-500 mt-1">${ev.venue} • ${ev.date}</p>
+            </div>
+            <button onclick="showToast('Đang kết nối cổng mua vé / đăng ký tham gia...')" class="w-full py-2.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl transition">
+              Chi tiết sự kiện
+            </button>
+          </div>
+        `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        // 5. FILTERS
+        function setShopMode(mode) {
+            currentShopMode = mode;
+            ['all', 'rent', 'buy'].forEach(m => {
+                const btn = document.getElementById(`shop-mode-${m}`);
+                if (m === mode) {
+                    btn.className = "px-3.5 py-1.5 text-xs font-bold rounded-xl bg-white shadow-sm text-slate-900 transition";
+                } else {
+                    btn.className = "px-3.5 py-1.5 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition";
+                }
+            });
+            applyShopFilters();
+        }
+
+        function applyShopFilters() {
+            const selectedSizes = Array.from(document.querySelectorAll('.shop-size-filter:checked')).map(cb => cb.value);
+            const selectedCat = document.getElementById('shopCategoryFilter').value;
+            const selectedLoc = document.getElementById('shopLocationFilter').value;
+
+            let filtered = listingsData.filter(item => {
+                if (currentShopMode !== 'all' && item.type !== currentShopMode) return false;
+                if (selectedSizes.length > 0 && !selectedSizes.includes(item.size)) return false;
+                if (selectedCat !== 'all' && item.category !== selectedCat) return false;
+                if (selectedLoc !== 'all' && !item.location.includes(selectedLoc)) return false;
+                return true;
+            });
+
+            renderShopListings(filtered);
+        }
+
+        function resetShopFilters() {
+            document.querySelectorAll('.shop-size-filter').forEach(cb => cb.checked = false);
+            document.getElementById('shopCategoryFilter').value = 'all';
+            document.getElementById('shopLocationFilter').value = 'all';
+            setShopMode('all');
+        }
+
+        function filterCategory(cat, element) {
+            const heading = document.getElementById('listingHeading');
+            const resetBtn = document.getElementById('resetFilterBtn');
+
+            document.querySelectorAll('.cat-card').forEach(el => {
+                el.classList.remove('border-2', 'border-brand-500', 'bg-brand-50/20');
+                el.classList.add('border-slate-200');
+            });
+
+            if (currentHomeCategory === cat) {
+                resetCategoryFilter();
+                return;
+            }
+
+            currentHomeCategory = cat;
+            if (element) {
+                element.classList.remove('border-slate-200');
+                element.classList.add('border-2', 'border-brand-500', 'bg-brand-50/20');
+            }
+
+            heading.innerText = `Danh mục: ${cat}`;
+            resetBtn.classList.remove('hidden');
+
+            const filtered = listingsData.filter(i => i.category === cat);
+            renderHomeListings(filtered);
+        }
+
+        function resetCategoryFilter() {
+            currentHomeCategory = null;
+            document.getElementById('listingHeading').innerText = 'Nổi bật trên CosWorld';
+            document.getElementById('resetFilterBtn').classList.add('hidden');
+
+            document.querySelectorAll('.cat-card').forEach(el => {
+                el.classList.remove('border-2', 'border-brand-500', 'bg-brand-50/20');
+                el.classList.add('border-slate-200');
+            });
+
+            renderHomeListings(listingsData);
+        }
+
+        function handleSearch(query) {
+            const q = query.toLowerCase().trim();
+            const filtered = listingsData.filter(i =>
+                i.title.toLowerCase().includes(q) ||
+                i.category.toLowerCase().includes(q) ||
+                i.location.toLowerCase().includes(q)
+            );
+            renderHomeListings(filtered);
+            renderShopListings(filtered);
+        }
+
+        function toggleLike(e, id) {
+            e.stopPropagation();
+            const target = listingsData.find(i => i.id === id);
+            if (target) {
+                target.liked = !target.liked;
+                showToast(target.liked ? "Đã lưu vào danh sách yêu thích!" : "Đã bỏ yêu thích");
+                renderHomeListings(listingsData);
+                renderShopListings(listingsData);
+            }
+        }
+
+        // 6. FORM ĐĂNG BÀI RIÊNG CHO TỪNG PHÂN HỆ
+        function handleCreateShopListing(e) {
+            e.preventDefault();
+            const newObj = {
+                id: `CW-${Math.floor(1000 + Math.random() * 9000)}`,
+                title: document.getElementById('newShopTitle').value,
+                category: document.getElementById('newShopCategory').value,
+                size: document.getElementById('newShopSize').value,
+                type: document.getElementById('newShopType').value,
+                price: parseInt(document.getElementById('newShopPrice').value),
+                deposit: parseInt(document.getElementById('newShopDeposit').value),
+                location: document.getElementById('newShopLocation').value,
+                time: 'Vừa xong',
+                img: document.getElementById('newShopCategory').value === 'Studio'
+                    ? 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&auto=format&fit=crop&q=80'
+                    : 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&auto=format&fit=crop&q=80',
+                liked: false
+            };
+
+            listingsData.unshift(newObj);
+            closeModal('createShopListingModal');
+            switchView('shop');
+            showToast("Đã đăng bài thành công lên sàn Thuê & Mua bán!");
+            e.target.reset();
+        }
+
+        function handleCreateTeamListing(e) {
+            e.preventDefault();
+            const newTeam = {
+                id: teamsData.length + 1,
+                title: document.getElementById('teamTitle').value,
+                desc: document.getElementById('teamDesc').value,
+                roles: [document.getElementById('teamRole').value],
+                location: document.getElementById('teamLocation').value,
+                budget: document.getElementById('teamBudget').value,
+                deadline: document.getElementById('teamDeadline').value,
+                author: currentUser ? currentUser.displayName : 'Khách',
+                authorAvatar: currentUser ? currentUser.avatar : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=60'
+            };
+
+            teamsData.unshift(newTeam);
+            closeModal('createTeamModal');
+            switchView('teams');
+            showToast("Đã đăng tin tuyển dụng team / staff thành công!");
+            e.target.reset();
+        }
+
+        function handleCreateEventListing(e) {
+            e.preventDefault();
+            const newEvent = {
+                id: eventsData.length + 1,
+                name: document.getElementById('eventName').value,
+                venue: document.getElementById('eventVenue').value,
+                date: document.getElementById('eventDate').value,
+                type: document.getElementById('eventType').value,
+                img: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=500'
+            };
+
+            eventsData.unshift(newEvent);
+            closeModal('createEventModal');
+            switchView('events');
+            showToast("Đã gửi kiểm duyệt sự kiện / festival mới!");
+            e.target.reset();
+        }
+
+        // 7. MODAL UTILS
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function openBookingModal(item) {
+            document.getElementById('modalListingId').innerText = `Mã #${item.id}`;
+            document.getElementById('modalTitle').innerText = item.title;
+            document.getElementById('modalLocation').innerText = `Fuzzy Location: ${item.location} (±500m)`;
+            document.getElementById('modalImg').src = item.img;
+            document.getElementById('modalSize').innerText = item.size;
+
+            const rental3Days = item.price * (item.type === 'rent' ? 3 : 1);
+            const deposit = item.deposit || (item.type === 'rent' ? 500000 : 0);
+            const grandTotal = rental3Days + deposit;
+
+            document.getElementById('modalPriceLabel').innerText = `${(item.price / 1000)}k`;
+            document.getElementById('modalRentalTotal').innerText = `${rental3Days.toLocaleString('vi-VN')}đ`;
+            document.getElementById('modalDepositTotal').innerText = `${deposit.toLocaleString('vi-VN')}đ`;
+            document.getElementById('modalGrandTotal').innerText = `${grandTotal.toLocaleString('vi-VN')}đ`;
+
+            openModal('bookingModal');
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.innerText = text;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        function handleZaloChat(phone, listingId) {
+            const msg = `[CosWorld] Chào bạn, mình muốn trao đổi về #${listingId}.`;
+            navigator.clipboard.writeText(msg);
+            showToast("Đã copy mã đơn cọc! Đang mở Zalo...");
+            setTimeout(() => window.open(`https://zalo.me/${phone}`, '_blank'), 800);
+        }
+
+        function handleFbChat(username, listingId) {
+            const msg = `[CosWorld] Chào bạn, mình quan tâm mã #${listingId}.`;
+            navigator.clipboard.writeText(msg);
+            showToast("Đã copy mã đơn! Đang mở Messenger...");
+            setTimeout(() => window.open(`https://m.me/${username}`, '_blank'), 800);
+        }
+
+        function confirmBooking() {
+            showToast("Tạo booking RPC thành công! Đã khoá lịch trên hệ thống.");
+            setTimeout(() => closeModal('bookingModal'), 1200);
+        }
+
+        // Close when click backdrop
+        window.onclick = function (e) {
+            ['bookingModal', 'createShopListingModal', 'createTeamModal', 'createEventModal', 'authModal', 'editProfileModal'].forEach(id => {
+                const modal = document.getElementById(id);
+                if (e.target === modal) closeModal(id);
+            });
+        }
+
+        // Khởi chạy ban đầu
+        window.onload = function () {
+            renderHomeListings(listingsData);
+            renderShopListings(listingsData);
+            renderTeams();
+            renderEvents();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+
+</html>
