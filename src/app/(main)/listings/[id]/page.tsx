@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { MapPin, MessageCircle, ShieldCheck } from 'lucide-react'
 import { ListingCarousel } from '@/components/listings/ListingCarousel'
+import { BookingForm } from '@/components/bookings/BookingForm'
 
 export default async function ListingDetailPage({
   params,
@@ -123,24 +124,33 @@ export default async function ListingDetailPage({
             </div>
           </div>
 
-          <div className="pt-6 sticky bottom-4 z-10 bg-white/80 backdrop-blur-md p-4 -mx-4 sm:mx-0 rounded-2xl border border-slate-200 shadow-xl shadow-brand-500/10">
-            {zaloDeepLink ? (
-              <a href={zaloDeepLink} target="_blank" rel="noreferrer">
-                <Button className="w-full h-12 text-base font-bold rounded-xl bg-brand-600 hover:bg-brand-700 shadow-md shadow-brand-600/20">
-                  <MessageCircle className="w-5 h-5 mr-2" />
-                  Chat Zalo để thuê ngay
-                </Button>
-              </a>
-            ) : (
-              <Button disabled className="w-full h-12 text-base font-bold rounded-xl">
-                Chủ đồ chưa cập nhật số điện thoại
-              </Button>
-            )}
-            <p className="text-[10px] text-center text-slate-400 mt-3">
-              Mã giao dịch (ID): <span className="font-mono text-slate-600 font-bold">{listing.id.substring(0, 8)}</span> (Gửi mã này cho chủ đồ)
-            </p>
-          </div>
+          {isRent && (
+            <div className="pt-6 sticky bottom-4 z-10 bg-white/80 backdrop-blur-md -mx-4 sm:mx-0 rounded-2xl border border-slate-200">
+              <BookingForm 
+                listingId={listing.id} 
+                pricePerDay={listing.price_per_day} 
+                minDays={listing.min_rental_days || 1}
+                zaloPhone={zaloPhone}
+              />
+            </div>
+          )}
 
+          {isSale && !isRent && (
+            <div className="pt-6 sticky bottom-4 z-10 bg-white/80 backdrop-blur-md p-4 -mx-4 sm:mx-0 rounded-2xl border border-slate-200 shadow-xl shadow-brand-500/10">
+              {zaloDeepLink ? (
+                <a href={zaloDeepLink} target="_blank" rel="noreferrer">
+                  <Button className="w-full h-12 text-base font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/20">
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                    Chat Zalo để mua pass lại
+                  </Button>
+                </a>
+              ) : (
+                <Button disabled className="w-full h-12 text-base font-bold rounded-xl">
+                  Chủ đồ chưa cập nhật số điện thoại
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

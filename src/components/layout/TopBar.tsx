@@ -70,6 +70,12 @@ export async function TopBar() {
                   <span className="text-[10px] text-brand-600 font-semibold">Xem profile</span>
                 </div>
               </Link>
+              <Link href="/calendar">
+                <Button variant="ghost" className="rounded-xl text-xs font-bold text-slate-600">
+                  Lịch cá nhân
+                </Button>
+              </Link>
+              
               <form action="/auth/signout" method="post">
                 <button type="submit" className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition" title="Đăng xuất">
                   <LogOut className="w-4 h-4" />
