@@ -2,9 +2,21 @@
 
 import { useListings } from '@/lib/hooks/useListings'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Heart, MapPin } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
+
+// Thêm thư viện dayjs hoặc date-fns nếu muốn format "2 giờ trước", ở đây dùng hàm đơn giản
+function timeAgo(dateString: string) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  
+  if (diffInSeconds < 60) return 'Vừa xong'
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`
+  return `${Math.floor(diffInSeconds / 86400)} ngày trước`
+}
 
 export function ListingsGrid({ query }: { query?: string }) {
   const {
@@ -16,14 +28,14 @@ export function ListingsGrid({ query }: { query?: string }) {
     status,
   } = useListings({ query })
 
-  if (status === 'pending') return <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-zinc-400" /></div>
-  if (status === 'error') return <div className="py-20 text-center text-red-500">Đã có lỗi xảy ra: {(error as Error).message}</div>
+  if (status === 'pending') return <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>
+  if (status === 'error') return <div className="py-20 text-center text-rose-500">Đã có lỗi xảy ra: {(error as Error).message}</div>
 
   const listings = data?.pages.flat() || []
 
   if (listings.length === 0) {
     return (
-      <div className="py-20 text-center text-zinc-500">
+      <div className="col-span-full py-12 text-center text-slate-400 text-sm font-semibold">
         Không tìm thấy sản phẩm nào phù hợp.
       </div>
     )
@@ -31,54 +43,64 @@ export function ListingsGrid({ query }: { query?: string }) {
 
   return (
     <div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {listings.map((listing: any) => (
-          <Link href={`/listings/${listing.id}`} key={listing.id} className="group flex flex-col space-y-3 cursor-pointer">
-            <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
-              {listing.cover_image ? (
-                <img
-                  src={listing.cover_image}
-                  alt={listing.title}
-                  className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-zinc-300">No Image</div>
-              )}
-              
-              <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
-                {listing.listing_type === 'rent' ? 'Cho thuê' : listing.listing_type === 'sale' ? 'Bán Pass' : 'Thuê & Bán'}
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <h3 className="font-medium line-clamp-1 group-hover:text-indigo-600 transition-colors">{listing.title}</h3>
-              <p className="text-sm text-zinc-500 line-clamp-1">{listing.city}</p>
-              
-              <div className="flex items-center space-x-2 pt-1">
-                {(listing.listing_type === 'rent' || listing.listing_type === 'both') && listing.price_per_day && (
-                  <span className="font-semibold">{listing.price_per_day.toLocaleString('vi-VN')}đ<span className="text-xs font-normal text-zinc-500">/ngày</span></span>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+        {listings.map((listing: any) => {
+          const isRent = listing.listing_type === 'rent' || listing.listing_type === 'both'
+          const displayPrice = isRent ? listing.price_per_day : listing.sale_price
+          
+          return (
+            <Link href={`/listings/${listing.id}`} key={listing.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col group">
+              <div className="relative aspect-square bg-slate-100 overflow-hidden">
+                {listing.cover_image ? (
+                  <img
+                    src={listing.cover_image}
+                    alt={listing.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs">No Image</div>
                 )}
-                {listing.listing_type === 'sale' && listing.sale_price && (
-                  <span className="font-semibold">{listing.sale_price.toLocaleString('vi-VN')}đ</span>
-                )}
-              </div>
-            </div>
-            
-            {listing.owner && (
-              <div className="flex items-center space-x-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                <div className="w-6 h-6 rounded-full bg-zinc-200 overflow-hidden shrink-0">
-                  {listing.owner.avatar_url && <img src={listing.owner.avatar_url} alt="" className="w-full h-full object-cover" />}
-                </div>
-                <span className="text-xs text-zinc-600 truncate">{listing.owner.username || 'User'}</span>
-                {listing.owner.reputation_score && (
-                  <span className="text-xs text-amber-500 flex items-center shrink-0">
-                    ★ {listing.owner.reputation_score}
+                
+                <span className={`absolute top-2 left-2 ${isRent ? 'bg-brand-600' : 'bg-indigo-600'} text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm`}>
+                  {isRent ? 'Thuê' : 'Pass lại'}
+                </span>
+                
+                {listing.size && (
+                  <span className="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-sm text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
+                    {listing.size}
                   </span>
                 )}
+                
+                <button 
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white text-slate-600 transition"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    // toggleLike logic here
+                  }}
+                >
+                  <Heart className="w-3.5 h-3.5" />
+                </button>
               </div>
-            )}
-          </Link>
-        ))}
+
+              <div className="p-3 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-slate-900 line-clamp-2 leading-tight group-hover:text-brand-600 transition">
+                    {listing.title}
+                  </h3>
+                  <div className="text-[13px] font-black text-brand-600 mt-1.5">
+                    {displayPrice ? displayPrice.toLocaleString('vi-VN') : 0}đ
+                    {isRent && <span className="text-[10px] font-normal text-slate-500">/ngày</span>}
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100">
+                  <span className="flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" /> {listing.city}</span>
+                  <span>{timeAgo(listing.created_at)}</span>
+                </div>
+              </div>
+            </Link>
+          )
+        })}
       </div>
 
       {hasNextPage && (
@@ -87,7 +109,7 @@ export function ListingsGrid({ query }: { query?: string }) {
             variant="outline"
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
-            className="w-full max-w-sm rounded-full"
+            className="w-full max-w-sm rounded-full text-xs font-bold text-slate-600 border-slate-200"
           >
             {isFetchingNextPage ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
             {isFetchingNextPage ? 'Đang tải...' : 'Xem thêm'}

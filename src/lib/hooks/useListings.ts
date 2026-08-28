@@ -10,7 +10,7 @@ export function useListings(filter: { category?: string, query?: string } = {}) 
       let query = supabase
         .from('listings')
         .select(`
-          id, title, price_per_day, sale_price, city, listing_type,
+          id, title, price_per_day, sale_price, city, listing_type, size, created_at,
           owner:owner_id(username, avatar_url, reputation_score),
           images:listing_images(r2_url)
         `)
