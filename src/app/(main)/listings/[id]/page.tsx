@@ -5,6 +5,28 @@ import { MapPin, MessageCircle, ShieldCheck } from 'lucide-react'
 import { ListingCarousel } from '@/components/listings/ListingCarousel'
 import { BookingForm } from '@/components/bookings/BookingForm'
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params
+  const supabase = await createClient()
+  const { data: listing } = await supabase
+    .from('listings')
+    .select('title, description, r2_url')
+    .eq('id', resolvedParams.id)
+    .single()
+
+  if (!listing) return { title: 'Not Found' }
+
+  return {
+    title: `${listing.title} | CosWorld`,
+    description: listing.description || `Thuê ${listing.title} trên CosWorld`,
+    openGraph: {
+      title: listing.title,
+      description: listing.description || `Thuê ${listing.title} trên CosWorld`,
+      images: [{ url: listing.r2_url }],
+    },
+  }
+}
+
 export default async function ListingDetailPage({
   params,
 }: {
