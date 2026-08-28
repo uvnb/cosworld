@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Eye, EyeOff, Trash2, Loader2 } from 'lucide-react'
 import { deleteListing, toggleListingStatus } from '@/app/actions/listings'
-import toast from 'react-hot-toast'
+import { toast } from 'sonner'
 
 export function ListingActions({ listingId, currentStatus }: { listingId: string, currentStatus: string }) {
   const [isUpdating, setIsUpdating] = useState(false)
