@@ -322,3 +322,256 @@ BEGIN
   RETURN v_booking;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+CREATE OR REPLACE FUNCTION search_listings(
+    lat double precision,
+    lng double precision,
+    radius_meters double precision,
+    search_query text DEFAULT NULL
+)
+RETURNS TABLE (
+    id uuid,
+    title text,
+    price_per_day integer,
+    sale_price integer,
+    city text,
+    listing_type text,
+    size text,
+    created_at timestamptz,
+    owner_id uuid,
+    distance double precision
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        l.id, l.title, l.price_per_day, l.sale_price, l.city, l.listing_type, l.size, l.created_at, l.owner_id,
+        ST_Distance(l.location::geography, ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography) as distance
+    FROM listings l
+    WHERE l.status = 'active'
+      AND (l.location IS NOT NULL)
+      AND ST_DWithin(l.location::geography, ST_SetSRID(ST_MakePoint(lng, lat), 4326)::geography, radius_meters)
+      AND (search_query IS NULL OR l.title ILIKE '%' || search_query || '%')
+    ORDER BY distance ASC;
+END;
+$$;
+-- 1. Favorites Table (Heart/Like listings)
+CREATE TABLE favorites (
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  listing_id UUID REFERENCES listings(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (user_id, listing_id)
+);
+
+-- 2. Followers Table
+CREATE TABLE followers (
+  follower_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  following_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (follower_id, following_id)
+);
+
+-- 3. Reputation Score Trigger
+-- Tính trung bình rating từ bảng reviews và cập nhật vào profiles.reputation_score
+CREATE OR REPLACE FUNCTION update_reputation_score()
+RETURNS TRIGGER AS $$
+DECLARE
+  v_avg_rating NUMERIC;
+BEGIN
+  -- Lấy trung bình số sao của người được đánh giá
+  SELECT COALESCE(ROUND(AVG(rating)::numeric, 1), 5.0) INTO v_avg_rating
+  FROM reviews
+  WHERE reviewee_id = NEW.reviewee_id AND is_published = TRUE;
+
+  -- Cập nhật vào profiles
+  UPDATE profiles
+  SET reputation_score = v_avg_rating
+  WHERE id = NEW.reviewee_id;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_reputation
+AFTER INSERT OR UPDATE ON reviews
+FOR EACH ROW
+EXECUTE FUNCTION update_reputation_score();
+-- Fix for infinite recursion detected in policy for relation "profiles"
+-- Using plpgsql instead of sql to prevent query inlining which loses SECURITY DEFINER context
+
+-- Drop the old recursive policies
+DROP POLICY IF EXISTS "Admin sees all profiles" ON profiles;
+DROP POLICY IF EXISTS "Admin can manage all" ON listings;
+DROP POLICY IF EXISTS "Reporter or admin" ON reports;
+
+-- Create a secure helper function that bypasses RLS to check admin status
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER -- Bypasses RLS
+SET search_path = public
+AS $$
+DECLARE
+  _is_admin boolean;
+BEGIN
+  SELECT role = 'admin' INTO _is_admin FROM profiles WHERE id = auth.uid();
+  RETURN COALESCE(_is_admin, false);
+END;
+$$;
+
+-- 1. Create the new non-recursive policy for profiles
+CREATE POLICY "Admin sees all profiles" ON profiles
+  FOR SELECT USING (
+    public.is_admin()
+  );
+
+-- 2. Update the admin policy on listings
+CREATE POLICY "Admin can manage all" ON listings
+  FOR ALL USING (
+    public.is_admin()
+  );
+
+-- 3. Update the admin policy on reports (from line 269 in init.sql)
+CREATE POLICY "Reporter or admin" ON reports
+  FOR SELECT USING (
+    auth.uid() = reporter_id OR public.is_admin()
+  );
+
+-- Comprehensive fix for listings permission denied
+-- Drops all existing policies on listings and recreates them cleanly
+
+DROP POLICY IF EXISTS "Public read active listings" ON listings;
+DROP POLICY IF EXISTS "Owner manages own listings" ON listings;
+DROP POLICY IF EXISTS "Admin can manage all" ON listings;
+DROP POLICY IF EXISTS "Owner insert listings" ON listings;
+DROP POLICY IF EXISTS "Owner select listings" ON listings;
+DROP POLICY IF EXISTS "Owner update listings" ON listings;
+DROP POLICY IF EXISTS "Owner delete listings" ON listings;
+
+-- Ensure role permissions
+GRANT ALL ON listings TO authenticated;
+GRANT ALL ON listings TO anon;
+GRANT ALL ON listing_images TO authenticated;
+GRANT ALL ON listing_images TO anon;
+
+-- Recreate policies explicitly for each operation
+CREATE POLICY "Public read active listings" ON listings
+  FOR SELECT USING (status = 'active');
+
+CREATE POLICY "Owner select own listings" ON listings
+  FOR SELECT USING (auth.uid() = owner_id);
+
+CREATE POLICY "Owner insert own listings" ON listings
+  FOR INSERT WITH CHECK (auth.uid() = owner_id);
+
+CREATE POLICY "Owner update own listings" ON listings
+  FOR UPDATE USING (auth.uid() = owner_id);
+
+CREATE POLICY "Owner delete own listings" ON listings
+  FOR DELETE USING (auth.uid() = owner_id);
+
+CREATE POLICY "Admin select listings" ON listings
+  FOR SELECT USING (public.is_admin());
+
+CREATE POLICY "Admin update listings" ON listings
+  FOR UPDATE USING (public.is_admin());
+
+CREATE POLICY "Admin delete listings" ON listings
+  FOR DELETE USING (public.is_admin());
+
+-- Ensure listing_images also has proper explicit policies just in case
+ALTER TABLE listing_images ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read listing_images" ON listing_images;
+DROP POLICY IF EXISTS "Owner manages listing_images" ON listing_images;
+
+CREATE POLICY "Public read listing_images" ON listing_images
+  FOR SELECT USING (true);
+
+CREATE POLICY "Owner insert listing_images" ON listing_images
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM listings WHERE listings.id = listing_id AND listings.owner_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Owner update listing_images" ON listing_images
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM listings WHERE listings.id = listing_id AND listings.owner_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Owner delete listing_images" ON listing_images
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM listings WHERE listings.id = listing_id AND listings.owner_id = auth.uid()
+    )
+  );
+-- Fix missing profiles that cause foreign key constraint violation on listings
+-- This script creates a trigger to automatically create a profile for new users
+-- and backfills any existing users who are missing a profile.
+
+-- 1. Create the trigger function
+CREATE OR REPLACE FUNCTION public.handle_new_user() 
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, username, full_name, avatar_url)
+  VALUES (
+    NEW.id,
+    COALESCE(
+      NEW.raw_user_meta_data->>'username', 
+      SPLIT_PART(NEW.email, '@', 1) || '_' || SUBSTR(NEW.id::text, 1, 6)
+    ),
+    COALESCE(
+      NEW.raw_user_meta_data->>'full_name',
+      SPLIT_PART(NEW.email, '@', 1)
+    ),
+    COALESCE(
+      NEW.raw_user_meta_data->>'avatar_url',
+      'https://ui-avatars.com/api/?name=' || COALESCE(NEW.raw_user_meta_data->>'full_name', SPLIT_PART(NEW.email, '@', 1))
+    )
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 2. Bind the trigger to auth.users
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 3. Backfill existing auth.users who don't have a profile yet
+INSERT INTO public.profiles (id, username, full_name, avatar_url)
+SELECT 
+  id,
+  COALESCE(
+    raw_user_meta_data->>'username', 
+    SPLIT_PART(email, '@', 1) || '_' || SUBSTR(id::text, 1, 6)
+  ),
+  COALESCE(
+    raw_user_meta_data->>'full_name',
+    SPLIT_PART(email, '@', 1)
+  ),
+  COALESCE(
+    raw_user_meta_data->>'avatar_url',
+    'https://ui-avatars.com/api/?name=' || COALESCE(raw_user_meta_data->>'full_name', SPLIT_PART(email, '@', 1))
+  )
+FROM auth.users
+WHERE id NOT IN (SELECT id FROM public.profiles)
+ON CONFLICT (id) DO NOTHING;
+-- Fix sequence permission denied for listing_images and any other tables
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
+
+-- Ensure table permissions are granted properly just in case
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon;
+
+-- For profiles, the frontend uses foreign key joins to get avatar and username.
+-- We must allow public read for profiles so those joins don't fail or return null.
+-- We will add a policy to allow public read on profiles.
+DROP POLICY IF EXISTS "Public can read profiles" ON profiles;
+CREATE POLICY "Public can read profiles" ON profiles
+  FOR SELECT USING (true);
