@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Star, Package, ShoppingBag, MessageSquare, Link2, Phone, MapPin, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
+import { ListingActions } from '@/components/listings/ListingActions'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -130,9 +131,7 @@ export default async function ProfilePage() {
                   {item.title}
                 </Link>
                 <p className="text-sm font-black text-brand-600 mt-1">{item.price_per_day?.toLocaleString('vi-VN')}đ<span className="text-slate-400 font-medium text-xs">/ngày</span></p>
-                <div className="mt-2 inline-block px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded uppercase">
-                  Đang hiển thị
-                </div>
+                <ListingActions listingId={item.id} currentStatus={item.status} />
               </div>
             ))}
             {!listings?.length && <p className="text-slate-500 text-sm col-span-full">Bạn chưa đăng sản phẩm nào.</p>}
