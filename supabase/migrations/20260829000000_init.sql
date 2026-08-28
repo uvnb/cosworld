@@ -1,5 +1,7 @@
 -- Enable PostGIS extension
 CREATE EXTENSION IF NOT EXISTS postgis;
+-- Enable btree_gist extension for UUID exclusion constraints
+CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 -- ===== CORE USERS =====
 CREATE TABLE profiles (
