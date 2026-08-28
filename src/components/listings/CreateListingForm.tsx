@@ -149,7 +149,7 @@ export function CreateListingForm({ userId }: { userId: string }) {
           max_rental_days: parseInt(data.max_rental_days),
           district: data.district,
           city: data.city,
-          location: `POINT(${lng} ${lat})`,
+          exact_location: `POINT(${lng} ${lat})`,
           status: 'active'
         })
         .select()
