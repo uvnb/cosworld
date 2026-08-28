@@ -13,8 +13,8 @@ export async function TopBar() {
         
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
-            <Sparkles className="w-5 h-5" />
+          <div className="h-10 w-10 flex items-center justify-center">
+            <img src="/logo-web.png" alt="CosWorld Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <span className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-1">
@@ -101,10 +101,10 @@ export async function TopBar() {
           <Link href="/" className="py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">
             <ShoppingBag className="w-4 h-4" /> Thuê & Mua bán
           </Link>
-          <Link href="/" className="py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">
+          <Link href="/services" className="py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">
             <Users className="w-4 h-4" /> Lập team / Tuyển staff
           </Link>
-          <Link href="/" className="py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">
+          <Link href="/events" className="py-3.5 px-2 border-b-2 border-transparent text-slate-600 hover:text-brand-600 flex items-center gap-2 shrink-0 transition">
             <Calendar className="w-4 h-4" /> Sự kiện & Festival
           </Link>
         </div>

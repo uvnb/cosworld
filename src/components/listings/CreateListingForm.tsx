@@ -97,7 +97,11 @@ export function CreateListingForm({ userId }: { userId: string }) {
 
       if (!uploadRes.ok) throw new Error('Upload ảnh thất bại')
 
-      uploadedUrls.push(`https://${process.env.NEXT_PUBLIC_R2_BUCKET_NAME}.r2.cloudflarestorage.com/${key}`)
+      const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL 
+        ? `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${key}`
+        : `https://pub-c2a417088b9042b49df67d165f3f0194.r2.dev/${key}` // Placeholder public url for R2 (needs to be configured in cloudflare)
+
+      uploadedUrls.push(publicUrl)
     }
     
     return uploadedUrls
