@@ -81,12 +81,6 @@ export async function TopBar() {
                   <LogOut className="w-4 h-4" />
                 </button>
               </form>
-              
-              <Link href="/listings/create">
-                <Button className="rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold">
-                  Đăng sản phẩm
-                </Button>
-              </Link>
             </div>
           )}
         </div>
