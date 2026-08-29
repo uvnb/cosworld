@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Star, Package, ShoppingBag, MessageSquare, Link2, Phone, MapPin, CheckCircle2 } from 'lucide-react'
-import Link from 'next/link'
-import { ListingActions } from '@/components/listings/ListingActions'
+import { Star, MessageSquare, Link2, MapPin, CheckCircle2 } from 'lucide-react'
+import { EditProfileDialog } from '@/components/profile/EditProfileDialog'
+import { DeleteAccountDialog } from '@/components/profile/DeleteAccountDialog'
+import { ProfileTabs } from '@/components/profile/ProfileTabs'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -38,6 +38,10 @@ export default async function ProfilePage() {
     .eq('reviewee_id', user.id)
     .eq('is_published', true)
 
+  const repScore = profile?.reputation_score !== undefined && profile?.reputation_score !== null 
+    ? profile.reputation_score.toFixed(1) 
+    : '0'
+
   return (
     <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full flex-1 space-y-6">
       
@@ -62,27 +66,27 @@ export default async function ProfilePage() {
             <span className="text-slate-400 font-medium text-sm">@{profile?.username || 'user'}</span>
             <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-full ml-0 md:ml-4 border border-amber-200">
               <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-              <span>Uy tín: {profile?.reputation_score?.toFixed(1) || '100'} điểm</span>
+              <span>Uy tín: {repScore} điểm</span>
             </div>
           </div>
           
           <p className="text-slate-600 text-sm max-w-2xl mb-4">
-            Người dùng chưa cập nhật thông tin giới thiệu. Rất vui được giao lưu kết nối!
+            {profile?.bio || 'Người dùng chưa cập nhật thông tin giới thiệu. Rất vui được giao lưu kết nối!'}
           </p>
 
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
               <MapPin className="w-3.5 h-3.5" />
-              <span>Hà Nội</span>
+              <span>{profile?.city || 'Chưa cập nhật địa chỉ'}</span>
             </div>
-            {profile?.zalo_link && (
-              <a href={profile.zalo_link} target="_blank" className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-full text-xs font-medium transition">
+            {profile?.phone && (
+              <a href={`https://zalo.me/${profile.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-full text-xs font-medium transition">
                 <MessageSquare className="w-3.5 h-3.5" />
                 <span>Nhắn Zalo</span>
               </a>
             )}
             {profile?.facebook_url && (
-              <a href={profile.facebook_url} target="_blank" className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-full text-xs font-medium transition">
+              <a href={profile.facebook_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-full text-xs font-medium transition">
                 <Link2 className="w-3.5 h-3.5" />
                 <span>Nhắn Messenger</span>
               </a>
@@ -91,54 +95,18 @@ export default async function ProfilePage() {
         </div>
 
         {/* Action Button */}
-        <div className="relative z-10 self-center md:self-start mt-4 md:mt-0">
-          <Button className="rounded-full bg-slate-900 text-white font-bold px-6 shadow-md hover:bg-slate-800 transition">
-            Chỉnh sửa trang cá nhân
-          </Button>
-          <form action="/auth/signout" method="post" className="mt-2 text-right">
-            <button type="submit" className="text-xs text-rose-500 hover:underline font-medium">Đăng xuất</button>
-          </form>
+        <div className="relative z-10 self-center md:self-start mt-4 md:mt-0 flex flex-col items-end">
+          <EditProfileDialog profile={profile} />
+          <DeleteAccountDialog email={user.email || ''} phone={profile?.phone || null} />
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
-        {/* Fake Tabs Header */}
-        <div className="flex border-b border-slate-100 overflow-x-auto hide-scrollbar px-6">
-          <div className="px-6 py-4 border-b-2 border-brand-600 text-brand-600 font-bold text-sm flex items-center gap-2 cursor-pointer shrink-0">
-            <Package className="w-4 h-4" /> Đồ đang cho thuê ({listings?.length || 0})
-          </div>
-          <div className="px-6 py-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-2 cursor-pointer shrink-0">
-            <ShoppingBag className="w-4 h-4" /> Lịch sử thuê
-          </div>
-          <div className="px-6 py-4 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-2 cursor-pointer shrink-0">
-            <Star className="w-4 h-4" /> Đánh giá nhận được
-          </div>
-        </div>
+      <ProfileTabs 
+        listings={listings || []} 
+        bookings={bookings || []} 
+        reviews={reviews || []} 
+      />
 
-        {/* Tab Content: Đồ đang cho thuê */}
-        <div className="p-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {listings?.map(item => (
-              <div key={item.id} className="group cursor-pointer">
-                <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-slate-100 mb-3 border border-slate-100">
-                  <img 
-                    src={item.listing_images?.[0]?.r2_url || "https://images.unsplash.com/photo-1540575467063-178a50c2df87"} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
-                  />
-                </div>
-                <Link href={`/listings/${item.id}`} className="font-bold text-slate-900 line-clamp-1 group-hover:text-brand-600 transition">
-                  {item.title}
-                </Link>
-                <p className="text-sm font-black text-brand-600 mt-1">{item.price_per_day?.toLocaleString('vi-VN')}đ<span className="text-slate-400 font-medium text-xs">/ngày</span></p>
-                <ListingActions listingId={item.id} currentStatus={item.status} />
-              </div>
-            ))}
-            {!listings?.length && <p className="text-slate-500 text-sm col-span-full">Bạn chưa đăng sản phẩm nào.</p>}
-          </div>
-        </div>
-
-      </div>
     </main>
   )
 }
