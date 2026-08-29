@@ -99,7 +99,7 @@ export default async function ProfilePage({
                   </div>
                   
                   <p className="text-slate-500 text-sm">
-                    @{profile?.username || 'user'} • Tham gia từ Thg 8, 2026
+                    Tham gia từ Thg 8, 2026
                   </p>
                 </div>
 

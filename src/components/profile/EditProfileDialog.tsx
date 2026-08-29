@@ -208,14 +208,10 @@ export function EditProfileDialog({ profile, email, triggerType = 'edit' }: Edit
               </div>
 
               {/* Text Fields */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="full_name" className="font-bold">Tên hiển thị</Label>
                   <Input id="full_name" name="full_name" defaultValue={profile?.full_name || ''} required className="rounded-xl bg-slate-50 border-slate-200" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="username" className="font-bold">Đường dẫn trang cá nhân (Không thể sửa)</Label>
-                  <Input id="username" name="username" defaultValue={profile?.username || ''} disabled className="rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" title="Đường dẫn được tạo tự động từ số điện thoại của bạn" />
                 </div>
               </div>
               <div className="space-y-2">
