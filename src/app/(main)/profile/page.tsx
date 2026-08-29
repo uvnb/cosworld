@@ -16,7 +16,7 @@ export default async function ProfilePage() {
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
   // Fetch Đồ đang cho thuê
   const { data: listings } = await supabase
