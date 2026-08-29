@@ -4,8 +4,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { deleteAccount } from '@/app/actions/profile'
-import { toast } from 'sonner'
 import { Loader2, X, AlertTriangle } from 'lucide-react'
 
 interface DeleteAccountDialogProps {
@@ -18,30 +16,37 @@ export function DeleteAccountDialog({ email, phone }: DeleteAccountDialogProps) 
   const [isLoading, setIsLoading] = useState(false)
   const [confirmEmail, setConfirmEmail] = useState('')
   const [confirmPhone, setConfirmPhone] = useState('')
+  const [errorMsg, setErrorMsg] = useState('')
 
   async function handleDelete(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setErrorMsg('')
     
     if (confirmEmail !== email) {
-      toast.error('Email xác nhận không khớp!')
+      setErrorMsg('Email xác nhận không khớp!')
       return
     }
     
-    // If phone exists in DB, it must match. If it doesn't exist, we skip check or require empty?
     if (phone && confirmPhone !== phone) {
-      toast.error('Số điện thoại xác nhận không khớp!')
+      setErrorMsg('Số điện thoại xác nhận không khớp!')
       return
     }
 
     setIsLoading(true)
     try {
-      await deleteAccount()
-      toast.success('Đã xóa tài khoản thành công.')
-      setIsOpen(false)
-      window.location.href = '/' // hard reload to clear cache
-    } catch (error: any) {
-      toast.error(error.message || 'Có lỗi xảy ra khi xóa tài khoản')
-    } finally {
+      const res = await fetch('/api/account/delete', { method: 'POST' })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setErrorMsg(data.error || 'Có lỗi xảy ra khi xóa tài khoản')
+        setIsLoading(false)
+        return
+      }
+
+      // Success — hard redirect to clear all cached state
+      window.location.href = '/'
+    } catch {
+      setErrorMsg('Không thể kết nối tới máy chủ. Vui lòng thử lại.')
       setIsLoading(false)
     }
   }
@@ -59,7 +64,7 @@ export function DeleteAccountDialog({ email, phone }: DeleteAccountDialogProps) 
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-xl">
             <button 
-              onClick={() => setIsOpen(false)}
+              onClick={() => { setIsOpen(false); setErrorMsg('') }}
               className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
             >
               <X className="w-5 h-5" />
@@ -72,6 +77,12 @@ export function DeleteAccountDialog({ email, phone }: DeleteAccountDialogProps) 
             <p className="text-sm text-slate-600 mb-6">
               Hành động này không thể hoàn tác. Mọi dữ liệu (bao gồm cả sản phẩm của bạn) sẽ bị xóa khỏi hệ thống. Vui lòng nhập Email {phone && "và Số điện thoại"} để xác nhận.
             </p>
+
+            {errorMsg && (
+              <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl">
+                {errorMsg}
+              </div>
+            )}
 
             <form onSubmit={handleDelete} className="space-y-4">
               <div className="space-y-2">
