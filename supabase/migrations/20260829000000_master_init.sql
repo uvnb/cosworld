@@ -15,7 +15,8 @@ CREATE TABLE profiles (
   zalo_link TEXT,       -- https://zalo.me/{phone} — public
   facebook_url TEXT,    -- https://m.me/{username} — public
   messenger_url TEXT,   -- alias của facebook_url cho rõ ràng
-  reputation_score NUMERIC(3,1) DEFAULT 5.0, -- Điểm uy tín (1.0 - 5.0)
+  cover_photo_url TEXT,
+  reputation_score NUMERIC(5,1) DEFAULT 0.0, -- Điểm uy tín / Lượt thích
   total_reviews INT DEFAULT 0,
   is_verified BOOLEAN DEFAULT FALSE,
   is_owner BOOLEAN DEFAULT FALSE,

@@ -100,15 +100,17 @@ export function ProfileTabs({ listings, bookings, reviews }: ProfileTabsProps) {
               reviews.map(review => (
                 <div key={review.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                   <div className="flex items-center gap-3 mb-2">
-                    <img src={review.reviewer?.avatar_url || "https://ui-avatars.com/api/?name=" + review.reviewer?.username} className="w-8 h-8 rounded-full" />
-                    <div>
-                      <p className="font-bold text-sm text-slate-900">{review.reviewer?.username}</p>
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: review.rating }).map((_, i) => (
-                          <Star key={i} className="w-3 h-3 fill-amber-500 text-amber-500" />
-                        ))}
+                    <Link href={`/profile/${review.reviewer?.username}`} className="flex items-center gap-3 hover:opacity-80 transition">
+                      <img src={review.reviewer?.avatar_url || "https://ui-avatars.com/api/?name=" + review.reviewer?.username} className="w-8 h-8 rounded-full" />
+                      <div>
+                        <p className="font-bold text-sm text-slate-900">{review.reviewer?.username}</p>
+                        <div className="flex gap-0.5">
+                          {Array.from({ length: review.rating }).map((_, i) => (
+                            <Star key={i} className="w-3 h-3 fill-amber-500 text-amber-500" />
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    </Link>
                   </div>
                   <p className="text-sm text-slate-600">{review.comment}</p>
                 </div>

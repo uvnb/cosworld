@@ -16,8 +16,10 @@ export async function updateProfile(formData: FormData) {
   const bio = formData.get('bio') as string
   const city = formData.get('city') as string
   const avatarFile = formData.get('avatar') as File | null
+  const coverPhotoFile = formData.get('cover_photo') as File | null
 
   let avatar_url = undefined
+  let cover_photo_url = undefined
 
   // Handle avatar upload if provided
   if (avatarFile && avatarFile.size > 0) {
@@ -29,7 +31,7 @@ export async function updateProfile(formData: FormData) {
       .upload(filePath, avatarFile)
 
     if (uploadError) {
-      throw new Error('Upload failed')
+      throw new Error('Upload avatar failed')
     }
 
     const { data: { publicUrl } } = supabase.storage
@@ -37,6 +39,26 @@ export async function updateProfile(formData: FormData) {
       .getPublicUrl(filePath)
       
     avatar_url = publicUrl
+  }
+
+  // Handle cover photo upload if provided
+  if (coverPhotoFile && coverPhotoFile.size > 0) {
+    const fileExt = coverPhotoFile.name.split('.').pop()
+    const filePath = `${user.id}-cover-${Math.random()}.${fileExt}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, coverPhotoFile)
+
+    if (uploadError) {
+      throw new Error('Upload cover photo failed')
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath)
+      
+    cover_photo_url = publicUrl
   }
 
   const updates: any = {
@@ -50,6 +72,10 @@ export async function updateProfile(formData: FormData) {
     updates.avatar_url = avatar_url
   }
 
+  if (cover_photo_url) {
+    updates.cover_photo_url = cover_photo_url
+  }
+
   const { error } = await supabase
     .from('profiles')
     .update(updates)
@@ -60,6 +86,7 @@ export async function updateProfile(formData: FormData) {
   }
 
   revalidatePath('/profile')
+  revalidatePath(`/profile/${username}`)
   revalidatePath('/')
 }
 
