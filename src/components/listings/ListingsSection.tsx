@@ -88,28 +88,37 @@ export function ListingsSection({ initialQuery }: { initialQuery?: string }) {
               </div>
               
               {/* Size Filter */}
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-slate-700">Size trang phục</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {['S', 'M', 'L', 'One-size'].map(size => (
-                    <div key={size} className="flex items-center space-x-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <Checkbox 
-                        id={`size-${size}`} 
-                        checked={filters.sizes?.includes(size)}
-                        onCheckedChange={(checked) => handleSizeChange(size, checked as boolean)}
-                      />
-                      <label htmlFor={`size-${size}`} className="text-xs font-semibold text-slate-600 cursor-pointer">
-                        Size {size}
-                      </label>
-                    </div>
-                  ))}
+              {filters.category !== 'studio' && (
+                <div className="space-y-3">
+                  <label className="text-xs font-bold text-slate-700">Size trang phục</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size'].map(size => (
+                      <div key={size} className="flex items-center space-x-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                        <Checkbox 
+                          id={`size-${size}`} 
+                          checked={filters.sizes?.includes(size)}
+                          onCheckedChange={(checked) => handleSizeChange(size, checked as boolean)}
+                        />
+                        <label htmlFor={`size-${size}`} className="text-xs font-semibold text-slate-600 cursor-pointer">
+                          {size === 'One-size' ? 'One-size' : `Size ${size}`}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Category Filter */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700">Danh mục món đồ</label>
-                <Select value={filters.category || 'all'} onValueChange={(val: any) => setFilters({...filters, category: val === 'all' ? '' : val})}>
+                <Select 
+                  value={filters.category || 'all'} 
+                  onValueChange={(val: any) => setFilters({
+                    ...filters, 
+                    category: val === 'all' ? '' : val,
+                    sizes: val === 'studio' ? [] : filters.sizes
+                  })}
+                >
                   <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 text-sm font-medium">
                     <SelectValue placeholder="Tất cả danh mục" />
                   </SelectTrigger>
