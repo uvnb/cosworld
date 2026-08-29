@@ -5,7 +5,7 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 -- ===== CORE USERS =====
 CREATE TABLE profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT UNIQUE NOT NULL,
   full_name TEXT,
   avatar_url TEXT,
@@ -25,8 +25,8 @@ CREATE TABLE profiles (
 
 -- ===== FOLLOW SYSTEM =====
 CREATE TABLE follows (
-  follower_id UUID REFERENCES profiles(id),
-  following_id UUID REFERENCES profiles(id),
+  follower_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  following_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   PRIMARY KEY (follower_id, following_id)
 );
@@ -49,7 +49,7 @@ CREATE TABLE tags ( -- Tier 2: Nhân vật, Danh mục
 -- ===== LISTINGS =====
 CREATE TABLE listings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id UUID REFERENCES profiles(id) NOT NULL,
+  owner_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   title TEXT NOT NULL,
   description TEXT,
   -- Phân loại Thuê vs Bán pass
@@ -89,9 +89,9 @@ CREATE TABLE listing_tags (
 -- ===== BOOKINGS =====
 CREATE TABLE bookings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  listing_id UUID REFERENCES listings(id) NOT NULL,
-  renter_id UUID REFERENCES profiles(id) NOT NULL,
-  owner_id UUID REFERENCES profiles(id) NOT NULL,
+  listing_id UUID REFERENCES listings(id) ON DELETE CASCADE NOT NULL,
+  renter_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  owner_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
   buffer_end_date DATE NOT NULL,
@@ -113,7 +113,7 @@ CREATE TABLE calendar_locks (
   listing_id UUID REFERENCES listings(id) ON DELETE CASCADE,
   start_date DATE NOT NULL,
   end_date DATE NOT NULL, -- includes buffer
-  booking_id UUID REFERENCES bookings(id),
+  booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
   lock_type TEXT CHECK (lock_type IN ('booking','buffer','manual_block')),
   EXCLUDE USING GIST (
     listing_id WITH =,
@@ -139,9 +139,9 @@ CREATE TRIGGER trg_release_calendar
 -- ===== REVIEWS =====
 CREATE TABLE reviews (
   id SERIAL PRIMARY KEY,
-  booking_id UUID REFERENCES bookings(id) UNIQUE,
-  reviewer_id UUID REFERENCES profiles(id),
-  reviewee_id UUID REFERENCES profiles(id),
+  booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE UNIQUE,
+  reviewer_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  reviewee_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   rating INT CHECK (rating BETWEEN 1 AND 5),
   comment TEXT,
   reviewer_role TEXT CHECK (reviewer_role IN ('renter','owner')),
@@ -152,9 +152,9 @@ CREATE TABLE reviews (
 -- ===== REPORTS (Báo cáo bùng cọc / vi phạm) =====
 CREATE TABLE reports (
   id SERIAL PRIMARY KEY,
-  reporter_id UUID REFERENCES profiles(id) NOT NULL,
-  reported_user_id UUID REFERENCES profiles(id) NOT NULL,
-  booking_id UUID REFERENCES bookings(id),
+  reporter_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  reported_user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
   reason TEXT NOT NULL, -- 'no_show', 'damaged_item', 'wrong_item', 'scam', 'other'
   description TEXT,
   evidence_urls TEXT[], -- mảng URL ảnh bằng chứng trên R2
@@ -175,7 +175,7 @@ CREATE TABLE events (
   poster_url TEXT,
   source_url TEXT,
   -- Crowdsourcing: BTC / cộng đồng tự đăng, admin chỉ duyệt
-  submitted_by UUID REFERENCES profiles(id), -- NULL = auto-crawled
+  submitted_by UUID REFERENCES profiles(id) ON DELETE CASCADE, -- NULL = auto-crawled
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   source_type TEXT DEFAULT 'manual' CHECK (source_type IN ('manual', 'crowdsourced', 'crawled')),
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -184,7 +184,7 @@ CREATE TABLE events (
 -- ===== ADD-ON SERVICES =====
 CREATE TABLE addon_providers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id UUID REFERENCES profiles(id),
+  owner_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   service_type TEXT CHECK (service_type IN ('makeup','photographer','staff')),
   title TEXT NOT NULL,
   price_per_session NUMERIC(12,0),
@@ -195,7 +195,7 @@ CREATE TABLE addon_providers (
 -- ===== NOTIFICATIONS =====
 CREATE TABLE notifications (
   id SERIAL PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   type TEXT NOT NULL, -- 'booking_confirmed', 'new_review', 'booking_reminder'...
   title TEXT NOT NULL,
   body TEXT,
@@ -577,3 +577,69 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon;
 DROP POLICY IF EXISTS "Public can read profiles" ON profiles;
 CREATE POLICY "Public can read profiles" ON profiles
   FOR SELECT USING (true);
+
+
+-- ===== ACCOUNT MANAGEMENT =====
+CREATE OR REPLACE FUNCTION public.delete_own_account()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_uid UUID := auth.uid();
+BEGIN
+  IF v_uid IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- With ON DELETE CASCADE applied to all tables, we just need to delete from auth.users
+  DELETE FROM auth.users WHERE id = v_uid;
+END;
+$$;
+
+-- ===== REPUTATION SYSTEM =====
+-- Create reputation_votes table to track who voted for whom
+CREATE TABLE IF NOT EXISTS public.reputation_votes (
+  id SERIAL PRIMARY KEY,
+  voter_id UUID REFERENCES auth.users(id) NOT NULL,
+  profile_id UUID REFERENCES auth.users(id) NOT NULL,
+  vote_value INT NOT NULL CHECK (vote_value IN (1, -1)),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(voter_id, profile_id)
+);
+
+-- Trigger to update reputation_score automatically
+CREATE OR REPLACE FUNCTION public.update_reputation_score()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    UPDATE public.profiles 
+    SET reputation_score = COALESCE(reputation_score, 0) + NEW.vote_value 
+    WHERE id = NEW.profile_id;
+  ELSIF TG_OP = 'UPDATE' THEN
+    UPDATE public.profiles 
+    SET reputation_score = COALESCE(reputation_score, 0) - OLD.vote_value + NEW.vote_value 
+    WHERE id = NEW.profile_id;
+  ELSIF TG_OP = 'DELETE' THEN
+    UPDATE public.profiles 
+    SET reputation_score = COALESCE(reputation_score, 0) - OLD.vote_value 
+    WHERE id = OLD.profile_id;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_reputation_vote ON public.reputation_votes;
+CREATE TRIGGER on_reputation_vote
+AFTER INSERT OR UPDATE OR DELETE ON public.reputation_votes
+FOR EACH ROW EXECUTE FUNCTION public.update_reputation_score();
+
+-- Reset all existing reputation scores to 0 (as requested)
+UPDATE public.profiles SET reputation_score = 0;
+
+-- Set up RLS for reputation_votes
+ALTER TABLE public.reputation_votes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public can read reputation votes" ON public.reputation_votes FOR SELECT USING (true);
+CREATE POLICY "Users can vote once" ON public.reputation_votes FOR INSERT WITH CHECK (auth.uid() = voter_id);
+CREATE POLICY "Users can change their vote" ON public.reputation_votes FOR UPDATE USING (auth.uid() = voter_id);
+CREATE POLICY "Users can remove their vote" ON public.reputation_votes FOR DELETE USING (auth.uid() = voter_id);
