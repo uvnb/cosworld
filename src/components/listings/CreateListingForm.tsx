@@ -66,11 +66,12 @@ export function CreateListingForm({ userId }: { userId: string }) {
     const uploadedUrls: string[] = []
     
     for (const file of images) {
-      // 1. Nén ảnh ở client
+      // 1. Nén ảnh ở client (0.5MB, WebP)
       const compressedFile = await imageCompression(file, {
-        maxSizeMB: 5,
+        maxSizeMB: 0.5,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
+        fileType: 'image/webp'
       })
 
       // 2. Lấy presigned URL

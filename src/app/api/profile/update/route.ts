@@ -25,8 +25,7 @@ export async function POST(request: Request) {
 
     // Handle avatar upload
     if (avatarFile && avatarFile.size > 0) {
-      const fileExt = avatarFile.name.split('.').pop()
-      const filePath = `${user.id}-${Date.now()}.${fileExt}`
+      const filePath = `${user.id}-${Date.now()}.webp`
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -45,8 +44,7 @@ export async function POST(request: Request) {
 
     // Handle cover photo upload
     if (coverPhotoFile && coverPhotoFile.size > 0) {
-      const fileExt = coverPhotoFile.name.split('.').pop()
-      const filePath = `${user.id}-cover-${Date.now()}.${fileExt}`
+      const filePath = `${user.id}-cover-${Date.now()}.webp`
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')

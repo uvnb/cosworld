@@ -35,11 +35,12 @@ export function EditProfileDialog({ profile, email, triggerType = 'edit' }: Edit
   }
 
   async function compressFile(file: File, maxSizeMB: number, maxDim: number): Promise<File> {
-    if (file.size <= maxSizeMB * 1024 * 1024) return file // already small enough
+    if (file.size <= maxSizeMB * 1024 * 1024 && file.type === 'image/webp') return file // already small enough and right format
     return await imageCompression(file, {
       maxSizeMB,
       maxWidthOrHeight: maxDim,
       useWebWorker: true,
+      fileType: 'image/webp',
     })
   }
 
