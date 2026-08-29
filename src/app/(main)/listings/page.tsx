@@ -93,7 +93,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </select>
             </div>
             
-            <ListingsGrid query={q} />
+            <ListingsGrid filters={{ query: q }} />
           </section>
 
         </div>

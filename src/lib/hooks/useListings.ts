@@ -3,7 +3,15 @@ import { createClient } from '@/lib/supabase/client'
 
 const supabase = createClient()
 
-export function useListings(filter: { category?: string, query?: string } = {}) {
+export type ListingFilters = {
+  query?: string;
+  category?: string;
+  sizes?: string[];
+  listingMode?: 'all' | 'rent' | 'sale';
+  city?: string;
+}
+
+export function useListings(filter: ListingFilters = {}) {
   return useInfiniteQuery({
     queryKey: ['listings', filter],
     queryFn: async ({ pageParam = 0 }) => {
@@ -20,6 +28,20 @@ export function useListings(filter: { category?: string, query?: string } = {}) 
 
       if (filter.query) {
         query = query.ilike('title', `%${filter.query}%`)
+      }
+      if (filter.category) {
+        query = query.eq('category', filter.category)
+      }
+      if (filter.city) {
+        query = query.ilike('city', `%${filter.city}%`)
+      }
+      if (filter.sizes && filter.sizes.length > 0) {
+        query = query.in('size', filter.sizes)
+      }
+      if (filter.listingMode === 'rent') {
+        query = query.in('listing_type', ['rent', 'both'])
+      } else if (filter.listingMode === 'sale') {
+        query = query.in('listing_type', ['sale', 'both'])
       }
 
       const { data, error } = await query

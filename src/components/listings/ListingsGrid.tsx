@@ -1,6 +1,6 @@
 'use client'
 
-import { useListings } from '@/lib/hooks/useListings'
+import { useListings, ListingFilters } from '@/lib/hooks/useListings'
 import { Button } from '@/components/ui/button'
 import { Loader2, Heart, MapPin } from 'lucide-react'
 import Link from 'next/link'
@@ -18,7 +18,7 @@ function timeAgo(dateString: string) {
   return `${Math.floor(diffInSeconds / 86400)} ngày trước`
 }
 
-export function ListingsGrid({ query }: { query?: string }) {
+export function ListingsGrid({ filters }: { filters?: ListingFilters }) {
   const {
     data,
     error,
@@ -26,7 +26,7 @@ export function ListingsGrid({ query }: { query?: string }) {
     hasNextPage,
     isFetchingNextPage,
     status,
-  } = useListings({ query })
+  } = useListings(filters || {})
 
   if (status === 'pending') return <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>
   if (status === 'error') return <div className="py-20 text-center text-rose-500">Đã có lỗi xảy ra: {(error as Error).message}</div>
