@@ -601,8 +601,8 @@ $$;
 -- Create reputation_votes table to track who voted for whom
 CREATE TABLE IF NOT EXISTS public.reputation_votes (
   id SERIAL PRIMARY KEY,
-  voter_id UUID REFERENCES auth.users(id) NOT NULL,
-  profile_id UUID REFERENCES auth.users(id) NOT NULL,
+  voter_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  profile_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   vote_value INT NOT NULL CHECK (vote_value IN (1, -1)),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(voter_id, profile_id)

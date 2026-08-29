@@ -77,7 +77,12 @@ export async function deleteAccount() {
     throw new Error(error.message)
   }
 
-  await supabase.auth.signOut()
+  try {
+    await supabase.auth.signOut()
+  } catch (e) {
+    // Ignore error, user is already deleted
+  }
+  
   revalidatePath('/')
 }
 
