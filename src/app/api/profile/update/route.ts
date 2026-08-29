@@ -13,8 +13,10 @@ export async function POST(request: Request) {
 
     const formData = await request.formData()
 
+    const { data: profile } = await supabase.from('profiles').select('username').eq('id', user.id).single()
+    const username = profile?.username
+
     const full_name = formData.get('full_name') as string
-    const username = formData.get('username') as string
     const bio = formData.get('bio') as string
     const city = formData.get('city') as string
     const avatarFile = formData.get('avatar') as File | null
@@ -63,7 +65,6 @@ export async function POST(request: Request) {
 
     const updates: Record<string, any> = {
       full_name,
-      username,
       bio,
       city,
     }

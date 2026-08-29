@@ -47,21 +47,23 @@ export function SignupForm({ message }: { message?: string }) {
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="space-y-2">
-          <Label htmlFor="phone" className="text-slate-700 font-bold">Số điện thoại <span className="text-slate-400 font-normal ml-1">Tùy chọn</span></Label>
+          <Label htmlFor="phone" className="text-slate-700 font-bold">Số điện thoại <span className="text-rose-500">*</span></Label>
           <Input
             id="phone"
             name="phone"
             type="tel"
+            required
             placeholder="0987654321"
             className="h-12 bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-xl"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="facebook_url" className="text-slate-700 font-bold">Link Facebook <span className="text-slate-400 font-normal ml-1">Tùy chọn</span></Label>
+          <Label htmlFor="facebook_url" className="text-slate-700 font-bold">Link Facebook <span className="text-rose-500">*</span></Label>
           <Input
             id="facebook_url"
             name="facebook_url"
             type="url"
+            required
             placeholder="https://facebook.com/..."
             className="h-12 bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-xl"
           />

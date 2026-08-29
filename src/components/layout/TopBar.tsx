@@ -10,7 +10,7 @@ export async function TopBar() {
   if (user) {
     const { data, error } = await supabase
       .from('profiles')
-      .select('username, avatar_url')
+      .select('username, full_name, avatar_url')
       .eq('id', user.id)
       .maybeSingle()
       
@@ -73,12 +73,12 @@ export async function TopBar() {
             <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
               <Link href="/profile" className="flex items-center gap-2.5 cursor-pointer p-1.5 rounded-xl hover:bg-slate-100/80 transition" title="Xem trang cá nhân">
                 <img 
-                  src={profile?.avatar_url || "https://ui-avatars.com/api/?name=" + (profile?.username || 'User')} 
+                  src={profile?.avatar_url || "https://ui-avatars.com/api/?name=" + (profile?.full_name || 'User')} 
                   alt="User Avatar" 
                   className="w-8 h-8 rounded-full object-cover ring-2 ring-brand-200" 
                 />
                 <span className="hidden lg:block text-left">
-                  <span className="text-xs font-bold text-slate-800 block leading-tight">{profile?.username || user.email?.split('@')[0] || 'Khách'}</span>
+                  <span className="text-xs font-bold text-slate-800 block leading-tight">{profile?.full_name || user.email?.split('@')[0] || 'Khách'}</span>
                   <span className="text-[10px] text-brand-600 font-semibold">Xem profile</span>
                 </span>
               </Link>
