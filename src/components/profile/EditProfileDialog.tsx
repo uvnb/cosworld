@@ -38,9 +38,10 @@ export function EditProfileDialog({ profile, email }: EditProfileDialogProps) {
     <>
       <Button 
         onClick={() => setIsOpen(true)}
-        className="w-full mt-6 rounded-xl bg-slate-900 text-white font-bold px-6 shadow-md shadow-slate-900/10 hover:bg-slate-800 transition active:scale-[0.98]"
+        className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg transition border-none shadow-none"
       >
-        Chỉnh sửa trang cá nhân
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+        Chỉnh sửa
       </Button>
 
       {isOpen && (
