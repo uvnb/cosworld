@@ -44,7 +44,7 @@ export function ListingsSection({ initialQuery }: { initialQuery?: string }) {
         </div>
         
         <div className="flex items-center gap-3 self-start sm:self-auto">
-          <Link href="/listings/new">
+          <Link href="/listings/create">
             <button className="bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm px-5 py-2.5 rounded-2xl flex items-center gap-2 transition shadow-md shadow-brand-600/20">
               <Plus className="w-4 h-4" /> Đăng đồ cho thuê / Bán pass
             </button>
