@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import imageCompression from 'browser-image-compression'
@@ -12,10 +12,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
+import { ImagePlus, X, Loader2 } from 'lucide-react'
 
 const formSchema = z.object({
   title: z.string().min(5, 'Tiêu đề ít nhất 5 ký tự'),
+  character_name: z.string().min(1, 'Vui lòng nhập tên nhân vật/tựa game'),
   description: z.string().min(10, 'Mô tả ít nhất 10 ký tự'),
   listing_type: z.enum(['rent', 'sale', 'both']),
   size: z.enum(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size']),
@@ -25,19 +28,38 @@ const formSchema = z.object({
   buffer_days: z.string().min(1, 'Nhập số ngày buffer'),
   min_rental_days: z.string().min(1, 'Nhập số ngày thuê tối thiểu'),
   max_rental_days: z.string().min(1, 'Nhập số ngày thuê tối đa'),
-  district: z.string().min(1, 'Nhập quận/huyện'),
-  city: z.string().min(1, 'Nhập tỉnh/thành phố'),
+  district: z.string().min(1, 'Vui lòng chọn quận/huyện'),
+  city: z.string().min(1, 'Vui lòng chọn tỉnh/thành phố'),
+  includes: z.array(z.string()).min(1, 'Chọn ít nhất 1 món đồ đi kèm'),
 })
 
 type FormData = z.infer<typeof formSchema>
 
+const INCLUDE_OPTIONS = [
+  { id: 'wig', label: 'Wig (Tóc giả)' },
+  { id: 'costume', label: 'Trang phục (Costume)' },
+  { id: 'shoes', label: 'Giày/Dép' },
+  { id: 'props', label: 'Đạo cụ (Props/Vũ khí)' },
+  { id: 'accessories', label: 'Phụ kiện nhỏ (Trang sức, mũ...)' }
+]
+
+const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Khác']
+// Simplified mock districts for demonstration
+const DISTRICTS: Record<string, string[]> = {
+  'Hồ Chí Minh': ['Quận 1', 'Quận 2', 'Quận 3', 'Quận Bình Thạnh', 'Quận Phú Nhuận', 'Khác'],
+  'Hà Nội': ['Ba Đình', 'Hoàn Kiếm', 'Đống Đa', 'Cầu Giấy', 'Khác'],
+  'Đà Nẵng': ['Hải Châu', 'Thanh Khê', 'Sơn Trà', 'Khác'],
+  'Khác': ['Khác']
+}
+
 export function CreateListingForm({ userId }: { userId: string }) {
   const router = useRouter()
   const [images, setImages] = useState<File[]>([])
+  const [previewUrls, setPreviewUrls] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const supabase = createClient()
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, watch, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       listing_type: 'rent',
@@ -45,11 +67,15 @@ export function CreateListingForm({ userId }: { userId: string }) {
       buffer_days: '1',
       min_rental_days: '1',
       max_rental_days: '30',
-      deposit_amount: '0',
+      deposit_amount: '',
+      includes: [],
+      city: '',
+      district: ''
     }
   })
 
   const listingType = watch('listing_type')
+  const selectedCity = watch('city')
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -59,14 +85,19 @@ export function CreateListingForm({ userId }: { userId: string }) {
         return
       }
       setImages(prev => [...prev, ...selectedFiles])
+      setPreviewUrls(prev => [...prev, ...selectedFiles.map(f => URL.createObjectURL(f))])
     }
+  }
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index))
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index))
   }
 
   const uploadImagesToR2 = async () => {
     const uploadedUrls: string[] = []
     
     for (const file of images) {
-      // 1. Nén ảnh ở client (0.5MB, WebP)
       const compressedFile = await imageCompression(file, {
         maxSizeMB: 0.5,
         maxWidthOrHeight: 1920,
@@ -74,7 +105,6 @@ export function CreateListingForm({ userId }: { userId: string }) {
         fileType: 'image/webp'
       })
 
-      // 2. Lấy presigned URL
       const res = await fetch('/api/upload/presigned-url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -89,7 +119,6 @@ export function CreateListingForm({ userId }: { userId: string }) {
       
       const { url, key } = await res.json()
 
-      // 3. Upload lên R2
       const uploadRes = await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': compressedFile.type },
@@ -100,7 +129,7 @@ export function CreateListingForm({ userId }: { userId: string }) {
 
       const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL 
         ? `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${key}`
-        : `https://pub-c2a417088b9042b49df67d165f3f0194.r2.dev/${key}` // Placeholder public url for R2 (needs to be configured in cloudflare)
+        : `https://pub-c2a417088b9042b49df67d165f3f0194.r2.dev/${key}` 
 
       uploadedUrls.push(publicUrl)
     }
@@ -110,18 +139,17 @@ export function CreateListingForm({ userId }: { userId: string }) {
 
   const onSubmit = async (data: FormData) => {
     if (images.length === 0) {
-      toast.error('Vui lòng upload ít nhất 1 ảnh')
+      toast.error('Vui lòng tải lên ít nhất 1 ảnh sản phẩm')
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      // 1. Upload ảnh
-      toast.info('Đang nén và tải ảnh lên server...')
+      toast.info('Đang nén và tải ảnh lên hệ thống...')
       const imageUrls = await uploadImagesToR2()
 
-      let lng = 106.660172 // Mặc định HCM
+      let lng = 106.660172
       let lat = 10.762622
       
       const cityLower = data.city.toLowerCase()
@@ -133,15 +161,16 @@ export function CreateListingForm({ userId }: { userId: string }) {
         lat = 16.0544
       }
 
-      // 2. Tạo Listing trong Supabase
       const { data: listing, error: listingError } = await supabase
         .from('listings')
         .insert({
           owner_id: userId,
           title: data.title,
+          character_name: data.character_name,
           description: data.description,
           listing_type: data.listing_type,
           size: data.size,
+          includes: data.includes,
           price_per_day: data.price_per_day ? parseInt(data.price_per_day) : null,
           sale_price: data.sale_price ? parseInt(data.sale_price) : null,
           deposit_amount: parseInt(data.deposit_amount),
@@ -158,7 +187,6 @@ export function CreateListingForm({ userId }: { userId: string }) {
 
       if (listingError) throw listingError
 
-      // 3. Lưu ảnh vào listing_images
       const imageRecords = imageUrls.map((url, index) => ({
         listing_id: listing.id,
         r2_url: url,
@@ -180,84 +208,246 @@ export function CreateListingForm({ userId }: { userId: string }) {
     }
   }
 
+  // Format currency helpers
+  const formatCurrency = (val: string) => {
+    if (!val) return ''
+    const num = val.replace(/\D/g, '')
+    return num ? parseInt(num, 10).toLocaleString('vi-VN') : ''
+  }
+  const parseCurrency = (val: string) => val.replace(/\D/g, '')
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="space-y-2">
-        <Label>Tiêu đề sản phẩm</Label>
-        <Input {...register('title')} placeholder="Ví dụ: Fullset Cosplay Raiden Shogun size M" />
-        {errors.title && <p className="text-red-500 text-sm">{errors.title.message}</p>}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+      
+      {/* KHU VỰC ẢNH SẢN PHẨM */}
+      <div>
+        <Label className="text-base font-bold text-slate-800 block mb-3">Hình ảnh sản phẩm (Tối đa 5 ảnh) <span className="text-rose-500">*</span></Label>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+          {previewUrls.map((url, index) => (
+            <div key={url} className="relative aspect-square rounded-2xl overflow-hidden border border-slate-200 group">
+              <img src={url} alt="Preview" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-rose-500 text-white rounded-full transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              {index === 0 && (
+                <span className="absolute bottom-2 left-2 bg-brand-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">Ảnh bìa</span>
+              )}
+            </div>
+          ))}
+
+          {images.length < 5 && (
+            <label className="aspect-square rounded-2xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors group">
+              <ImagePlus className="w-8 h-8 text-slate-400 group-hover:text-brand-500 mb-2" />
+              <span className="text-xs font-medium text-slate-500 group-hover:text-brand-600">Thêm ảnh</span>
+              <input type="file" multiple accept="image/jpeg, image/png, image/webp" className="hidden" onChange={handleImageChange} />
+            </label>
+          )}
+        </div>
+        <p className="text-xs text-slate-500 mt-3">Ảnh sẽ tự động nén WebP (Max 0.5MB) để tối ưu tốc độ tải trang.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Loại hình</Label>
-          <Select onValueChange={(val: any) => setValue('listing_type', val)} defaultValue={watch('listing_type')}>
-            <SelectTrigger><SelectValue placeholder="Chọn loại hình" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="rent">Chỉ Cho Thuê</SelectItem>
-              <SelectItem value="sale">Chỉ Bán Pass</SelectItem>
-              <SelectItem value="both">Cả Thuê & Bán Pass</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Size đồ</Label>
-          <Select onValueChange={(val: any) => setValue('size', val)} defaultValue={watch('size')}>
-            <SelectTrigger><SelectValue placeholder="Chọn size" /></SelectTrigger>
-            <SelectContent>
-              {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size'].map(s => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <div className="h-px bg-slate-100" />
 
-      <div className="grid grid-cols-2 gap-4">
-        {(listingType === 'rent' || listingType === 'both') && (
+      {/* THÔNG TIN CƠ BẢN */}
+      <div className="space-y-5">
+        <h3 className="text-lg font-bold text-slate-800">Thông tin cơ bản</h3>
+        
+        <div className="space-y-2">
+          <Label className="font-bold">Tiêu đề sản phẩm <span className="text-rose-500">*</span></Label>
+          <Input {...register('title')} placeholder="Ví dụ: Fullset Cosplay Raiden Shogun size M" className="h-12 rounded-xl bg-slate-50 border-slate-200" />
+          {errors.title && <p className="text-rose-500 text-sm">{errors.title.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <Label className="font-bold">Tên nhân vật / Tựa game (Anime) <span className="text-rose-500">*</span></Label>
+          <Input {...register('character_name')} placeholder="Ví dụ: Raiden Shogun - Genshin Impact" className="h-12 rounded-xl bg-slate-50 border-slate-200" />
+          {errors.character_name && <p className="text-rose-500 text-sm">{errors.character_name.message}</p>}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Giá thuê / Ngày (VNĐ)</Label>
-            <Input type="number" {...register('price_per_day')} placeholder="Ví dụ: 100000" />
+            <Label className="font-bold">Loại hình</Label>
+            <Select onValueChange={(val: any) => setValue('listing_type', val)} defaultValue={watch('listing_type')}>
+              <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn loại hình" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="rent">Chỉ Cho Thuê</SelectItem>
+                <SelectItem value="sale">Chỉ Bán Pass</SelectItem>
+                <SelectItem value="both">Cả Thuê & Bán Pass</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        )}
-        {(listingType === 'sale' || listingType === 'both') && (
           <div className="space-y-2">
-            <Label>Giá bán pass (VNĐ)</Label>
-            <Input type="number" {...register('sale_price')} placeholder="Ví dụ: 800000" />
+            <Label className="font-bold">Size đồ</Label>
+            <Select onValueChange={(val: any) => setValue('size', val)} defaultValue={watch('size')}>
+              <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn size" /></SelectTrigger>
+              <SelectContent>
+                {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size'].map(s => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label>Tiền cọc (VNĐ)</Label>
-        <Input type="number" {...register('deposit_amount')} placeholder="Tiền cọc đồ" />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Mô tả chi tiết</Label>
-        <Textarea {...register('description')} rows={5} placeholder="Tình trạng đồ, các phụ kiện đi kèm, lưu ý khi thuê..." />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Quận/Huyện</Label>
-          <Input {...register('district')} placeholder="Quận 1" />
         </div>
+
+        <div className="space-y-3">
+          <Label className="font-bold">Tình trạng đồ (Bao gồm những gì?) <span className="text-rose-500">*</span></Label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <Controller
+              name="includes"
+              control={control}
+              render={({ field }) => (
+                <>
+                  {INCLUDE_OPTIONS.map((opt) => (
+                    <div key={opt.id} className="flex items-center space-x-2">
+                      <Checkbox 
+                        id={opt.id} 
+                        checked={field.value?.includes(opt.id)}
+                        onCheckedChange={(checked) => {
+                          const current = field.value || []
+                          const updated = checked 
+                            ? [...current, opt.id] 
+                            : current.filter((v: string) => v !== opt.id)
+                          field.onChange(updated)
+                        }}
+                      />
+                      <label htmlFor={opt.id} className="text-sm font-medium leading-none cursor-pointer">
+                        {opt.label}
+                      </label>
+                    </div>
+                  ))}
+                </>
+              )}
+            />
+          </div>
+          {errors.includes && <p className="text-rose-500 text-sm">{errors.includes.message}</p>}
+        </div>
+
         <div className="space-y-2">
-          <Label>Tỉnh/Thành phố</Label>
-          <Input {...register('city')} placeholder="TP.HCM" />
+          <Label className="font-bold">Mô tả chi tiết (Lưu ý, hỏng hóc...)</Label>
+          <Textarea {...register('description')} rows={4} placeholder="Mô tả chi tiết tình trạng đồ, các lưu ý khi mặc, có lỗi gì không..." className="rounded-xl bg-slate-50 border-slate-200 resize-none" />
+          {errors.description && <p className="text-rose-500 text-sm">{errors.description.message}</p>}
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Hình ảnh (Tối đa 5 ảnh)</Label>
-        <Input type="file" multiple accept="image/jpeg, image/png, image/webp" onChange={handleImageChange} />
-        <p className="text-sm text-zinc-500">{images.length} ảnh đã chọn</p>
+      <div className="h-px bg-slate-100" />
+
+      {/* TÀI CHÍNH */}
+      <div className="space-y-5">
+        <h3 className="text-lg font-bold text-slate-800">Tài chính & Vận chuyển</h3>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {(listingType === 'rent' || listingType === 'both') && (
+            <div className="space-y-2">
+              <Label className="font-bold">Giá thuê / Ngày</Label>
+              <div className="relative">
+                <Controller
+                  name="price_per_day"
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <Input 
+                      value={formatCurrency(value || '')}
+                      onChange={(e) => onChange(parseCurrency(e.target.value))}
+                      placeholder="100.000" 
+                      className="h-12 rounded-xl bg-slate-50 border-slate-200 pr-12 font-semibold"
+                    />
+                  )}
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">VNĐ</div>
+              </div>
+            </div>
+          )}
+          {(listingType === 'sale' || listingType === 'both') && (
+            <div className="space-y-2">
+              <Label className="font-bold">Giá bán pass</Label>
+              <div className="relative">
+                <Controller
+                  name="sale_price"
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <Input 
+                      value={formatCurrency(value || '')}
+                      onChange={(e) => onChange(parseCurrency(e.target.value))}
+                      placeholder="800.000" 
+                      className="h-12 rounded-xl bg-slate-50 border-slate-200 pr-12 font-semibold"
+                    />
+                  )}
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">VNĐ</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="font-bold">Tiền cọc <span className="text-rose-500">*</span></Label>
+            <div className="relative">
+              <Controller
+                name="deposit_amount"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Input 
+                    value={formatCurrency(value || '')}
+                    onChange={(e) => onChange(parseCurrency(e.target.value))}
+                    placeholder="2.000.000" 
+                    className="h-12 rounded-xl bg-slate-50 border-slate-200 pr-12 font-semibold"
+                  />
+                )}
+              />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">VNĐ</div>
+            </div>
+            {errors.deposit_amount && <p className="text-rose-500 text-sm">{errors.deposit_amount.message}</p>}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div className="space-y-2">
+            <Label className="font-bold">Tỉnh / Thành phố <span className="text-rose-500">*</span></Label>
+            <Select onValueChange={(val: any) => { setValue('city', val); setValue('district', '') }} defaultValue={watch('city')}>
+              <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn Tỉnh/Thành" /></SelectTrigger>
+              <SelectContent>
+                {CITIES.map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.city && <p className="text-rose-500 text-sm">{errors.city.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label className="font-bold">Quận / Huyện <span className="text-rose-500">*</span></Label>
+            <Select onValueChange={(val: any) => setValue('district', val)} value={watch('district')} disabled={!selectedCity}>
+              <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn Quận/Huyện" /></SelectTrigger>
+              <SelectContent>
+                {(DISTRICTS[selectedCity] || []).map(d => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.district && <p className="text-rose-500 text-sm">{errors.district.message}</p>}
+          </div>
+        </div>
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? 'Đang xử lý...' : 'Đăng sản phẩm'}
-      </Button>
+      <div className="pt-4 flex justify-end">
+        <Button 
+          type="submit" 
+          disabled={isSubmitting} 
+          className="h-14 px-8 w-full sm:w-auto rounded-xl bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white font-bold shadow-lg shadow-brand-500/30 text-lg transition-all"
+        >
+          {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Đang xử lý...
+            </span>
+          ) : 'Đăng sản phẩm'}
+        </Button>
+      </div>
     </form>
   )
 }
