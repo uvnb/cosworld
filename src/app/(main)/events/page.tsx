@@ -13,7 +13,7 @@ export default async function EventsPage() {
     .order('start_date', { ascending: true })
 
   return (
-    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full flex-1 space-y-8">
       
       {/* Big Hero Banner */}
       <div className="rounded-[2rem] overflow-hidden bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-400 p-8 sm:p-12 relative shadow-lg">
@@ -91,6 +91,6 @@ export default async function EventsPage() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   )
 }

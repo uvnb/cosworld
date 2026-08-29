@@ -16,7 +16,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
   const { data: services } = await query
 
   return (
-    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full flex-1 space-y-6">
       
       {/* Top Banner */}
       <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -131,6 +131,6 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
         })}
 
       </div>
-    </div>
+    </main>
   )
 }
