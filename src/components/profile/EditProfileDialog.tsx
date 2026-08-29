@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { updateProfile } from '@/app/actions/profile'
 import { toast } from 'sonner'
 import { Loader2, X } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
 import { DeleteAccountDialog } from './DeleteAccountDialog'
 
 interface EditProfileDialogProps {
@@ -24,7 +25,24 @@ export function EditProfileDialog({ profile, email, triggerType = 'edit' }: Edit
     e.preventDefault()
     setIsLoading(true)
     const formData = new FormData(e.currentTarget)
+
     try {
+      // 1. Client-side Image Compression
+      const avatarFile = formData.get('avatar') as File | null
+      if (avatarFile && avatarFile.size > 0) {
+        if (avatarFile.size > 5 * 1024 * 1024) throw new Error("Ảnh đại diện quá 5MB!")
+        const compressed = await imageCompression(avatarFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1024, useWebWorker: true })
+        formData.set('avatar', compressed, compressed.name || avatarFile.name)
+      }
+      
+      const coverFile = formData.get('cover_photo') as File | null
+      if (coverFile && coverFile.size > 0) {
+        if (coverFile.size > 5 * 1024 * 1024) throw new Error("Ảnh bìa quá 5MB!")
+        const compressed = await imageCompression(coverFile, { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true })
+        formData.set('cover_photo', compressed, compressed.name || coverFile.name)
+      }
+
+      // 2. Upload Profile Data
       const result = await updateProfile(formData)
       toast.success('Cập nhật hồ sơ thành công!')
       
@@ -75,11 +93,13 @@ export function EditProfileDialog({ profile, email, triggerType = 'edit' }: Edit
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="avatar" className="font-bold">Ảnh đại diện</Label>
-                  <Input id="avatar" name="avatar" type="file" accept="image/*" className="rounded-xl border-slate-200" />
+                  <Input id="avatar" name="avatar" type="file" accept="image/*" className="rounded-xl border-slate-200 text-sm" />
+                  <p className="text-[11px] text-slate-500 font-medium">Tối đa 5MB (Sẽ tự động nén)</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="cover_photo" className="font-bold">Ảnh bìa</Label>
-                  <Input id="cover_photo" name="cover_photo" type="file" accept="image/*" className="rounded-xl border-slate-200" />
+                  <Input id="cover_photo" name="cover_photo" type="file" accept="image/*" className="rounded-xl border-slate-200 text-sm" />
+                  <p className="text-[11px] text-slate-500 font-medium">Tối đa 5MB (Sẽ tự động nén)</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
