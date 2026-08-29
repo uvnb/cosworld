@@ -1,5 +1,5 @@
 import { ListingsGrid } from '@/components/listings/ListingsGrid'
-import { Shirt, Smile, Sword, Footprints, Gem, Camera, MoreHorizontal, ChevronRight, Users, Calendar } from 'lucide-react'
+import { Shirt, Smile, Sword, Footprints, Gem, Camera, MoreHorizontal, ChevronRight, Users, Calendar, LayoutGrid } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 
 import Link from 'next/link'
@@ -25,13 +25,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {/* Category Icon Bar */}
         <section className="grid grid-cols-4 sm:grid-cols-7 gap-3 sm:gap-4">
           {[
+            { id: '', icon: LayoutGrid, label: 'Tất cả', color: 'text-brand-600', bg: 'bg-brand-50' },
             { id: 'costume', icon: Shirt, label: 'Trang phục', color: 'text-purple-600', bg: 'bg-purple-50' },
             { id: 'wig', icon: Smile, label: 'Tóc giả', color: 'text-pink-500', bg: 'bg-pink-50' },
             { id: 'props', icon: Sword, label: 'Vũ khí', color: 'text-blue-600', bg: 'bg-blue-50' },
             { id: 'shoes', icon: Footprints, label: 'Giày dép', color: 'text-rose-500', bg: 'bg-rose-50' },
             { id: 'accessories', icon: Gem, label: 'Phụ kiện', color: 'text-amber-600', bg: 'bg-amber-50' },
             { id: 'studio', icon: Camera, label: 'Studio', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-            { id: '', icon: MoreHorizontal, label: 'Khác', color: 'text-slate-600', bg: 'bg-slate-100' },
           ].map((cat, i) => {
             const isActive = category === cat.id
             return (
