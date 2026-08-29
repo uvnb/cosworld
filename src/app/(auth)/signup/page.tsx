@@ -3,6 +3,7 @@ import { signup } from '../actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ArrowLeft, Sparkles, ShieldCheck, Zap } from 'lucide-react'
 
 export default async function SignupPage({
   searchParams,
@@ -10,86 +11,182 @@ export default async function SignupPage({
   searchParams: Promise<{ message: string }>
 }) {
   const resolvedSearchParams = await searchParams
+  
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 p-4 dark:bg-zinc-950">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm dark:bg-zinc-900">
-        <div className="mb-8 flex flex-col space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Tạo tài khoản mới
-          </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Tham gia cộng đồng CosWorld ngay hôm nay
-          </p>
+    <div className="flex min-h-screen bg-white">
+      {/* Left Column - Branding (Hidden on Mobile) */}
+      <div className="hidden lg:flex w-1/2 bg-slate-900 relative flex-col justify-between overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618331835717-801e976710b2?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-600/90 via-indigo-900/90 to-slate-900/95" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay" />
+        
+        {/* Content */}
+        <div className="relative z-10 p-12 flex flex-col h-full justify-between">
+          <div>
+            <Link href="/" className="inline-flex items-center gap-2 text-white hover:opacity-80 transition">
+              <ArrowLeft className="w-5 h-5" />
+              <span className="font-semibold">Quay lại trang chủ</span>
+            </Link>
+          </div>
+          
+          <div className="max-w-md">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center p-2 shadow-2xl">
+                <img src="/logo-web.png" alt="Logo" className="w-full h-full object-contain" />
+              </div>
+              <h2 className="text-3xl font-black text-white tracking-tight">CosWorld</h2>
+            </div>
+            
+            <h1 className="text-4xl font-black text-white leading-tight mb-6">
+              Cộng đồng Cosplay <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-indigo-300">
+                lớn nhất Việt Nam
+              </span>
+            </h1>
+            
+            <div className="space-y-6 mt-12">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                  <Sparkles className="w-5 h-5 text-brand-300" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold mb-1">Thuê đồ dễ dàng</h3>
+                  <p className="text-slate-300 text-sm">Hàng ngàn món đồ cosplay đa dạng, giá cả minh bạch và an toàn.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                  <ShieldCheck className="w-5 h-5 text-indigo-300" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold mb-1">Giao dịch an toàn</h3>
+                  <p className="text-slate-300 text-sm">Hệ thống uy tín, đánh giá minh bạch giúp bạn yên tâm khi giao dịch.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                  <Zap className="w-5 h-5 text-amber-300" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold mb-1">Kết nối nhanh chóng</h3>
+                  <p className="text-slate-300 text-sm">Tìm kiếm team, staff và đối tác studio chỉ trong vài cú click.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-slate-400 text-sm">
+            © 2026 CosWorld Platform. Đã đăng ký bản quyền.
+          </div>
         </div>
+      </div>
 
-        <form className="space-y-4" action={signup}>
-          <div className="space-y-2">
-            <Label htmlFor="username">Tên người dùng (Username) <span className="text-red-500">*</span></Label>
-            <Input
-              id="username"
-              name="username"
-              type="text"
-              placeholder="Ví dụ: cosplayer123 (viết liền, không dấu)"
-              pattern="^\S+$"
-              title="Username không được chứa dấu cách"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Ví dụ: ban@gmail.com (Dùng để đăng nhập)"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Số điện thoại <span className="text-slate-400 text-xs font-normal">(Tùy chọn)</span></Label>
-            <Input
-              id="phone"
-              name="phone"
-              type="tel"
-              placeholder="Ví dụ: 0987654321"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="facebook_url">Link Facebook <span className="text-slate-400 text-xs font-normal">(Tùy chọn)</span></Label>
-            <Input
-              id="facebook_url"
-              name="facebook_url"
-              type="url"
-              placeholder="Ví dụ: https://facebook.com/username"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Mật khẩu <span className="text-red-500">*</span></Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Tối thiểu 6 ký tự"
-              minLength={6}
-              required
-            />
-          </div>
-          <Button className="w-full bg-brand-600 hover:bg-brand-700 font-bold" type="submit">
-            Đăng ký
-          </Button>
-
-          {resolvedSearchParams?.message && (
-            <p className="mt-4 p-4 bg-zinc-100 text-zinc-900 text-center text-sm rounded">
-              {resolvedSearchParams.message}
-            </p>
-          )}
-        </form>
-
-        <div className="mt-6 text-center text-sm text-zinc-500">
-          Đã có tài khoản?{' '}
-          <Link href="/login" className="text-indigo-600 hover:underline dark:text-indigo-400">
-            Đăng nhập
+      {/* Right Column - Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative">
+        <div className="w-full max-w-md">
+          {/* Mobile Back Button */}
+          <Link href="/" className="lg:hidden inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 transition mb-8">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-sm font-semibold">Trang chủ</span>
           </Link>
+
+          <div className="mb-10">
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
+              Tạo tài khoản mới
+            </h2>
+            <p className="text-slate-500">
+              Điền thông tin bên dưới để bắt đầu hành trình của bạn tại CosWorld.
+            </p>
+          </div>
+
+          <form className="space-y-5" action={signup}>
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-slate-700 font-bold">Tên người dùng (Username) <span className="text-rose-500">*</span></Label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Ví dụ: cosplayer123 (viết liền, không dấu)"
+                pattern="^\S+$"
+                title="Username không được chứa dấu cách"
+                required
+                className="h-12 bg-slate-50 border-slate-200 focus:bg-white focus:ring-brand-500 focus:border-brand-500 transition-all rounded-xl"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-slate-700 font-bold">Email <span className="text-rose-500">*</span></Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="Ví dụ: ban@gmail.com (Dùng để đăng nhập)"
+                required
+                className="h-12 bg-slate-50 border-slate-200 focus:bg-white focus:ring-brand-500 focus:border-brand-500 transition-all rounded-xl"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-slate-700 font-bold">Số điện thoại <span className="text-slate-400 font-normal ml-1">Tùy chọn</span></Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  placeholder="0987654321"
+                  className="h-12 bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="facebook_url" className="text-slate-700 font-bold">Link Facebook <span className="text-slate-400 font-normal ml-1">Tùy chọn</span></Label>
+                <Input
+                  id="facebook_url"
+                  name="facebook_url"
+                  type="url"
+                  placeholder="https://facebook.com/..."
+                  className="h-12 bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <Label htmlFor="password" className="text-slate-700 font-bold">Mật khẩu <span className="text-rose-500">*</span></Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Tối thiểu 6 ký tự"
+                minLength={6}
+                required
+                className="h-12 bg-slate-50 border-slate-200 focus:bg-white focus:ring-brand-500 focus:border-brand-500 transition-all rounded-xl"
+              />
+            </div>
+
+            <Button className="w-full h-12 mt-4 bg-brand-600 hover:bg-brand-700 text-white font-bold text-base rounded-xl shadow-lg shadow-brand-600/25 transition-all active:scale-[0.98]" type="submit">
+              Đăng ký tài khoản
+            </Button>
+
+            {resolvedSearchParams?.message && (
+              <div className="mt-4 p-4 bg-rose-50 border border-rose-100 text-rose-700 text-sm font-medium rounded-xl flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-rose-600 font-bold text-xs">!</span>
+                </div>
+                <p>{resolvedSearchParams.message}</p>
+              </div>
+            )}
+          </form>
+
+          <div className="mt-10 text-center">
+            <p className="text-slate-500">
+              Đã có tài khoản?{' '}
+              <Link href="/login" className="text-brand-600 font-bold hover:text-brand-700 transition">
+                Đăng nhập tại đây
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
