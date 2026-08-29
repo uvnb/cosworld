@@ -515,14 +515,30 @@ CREATE POLICY "Owner delete listing_images" ON listing_images
 -- 1. Create the trigger function
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
+DECLARE
+  v_base_username TEXT;
+  v_phone_suffix TEXT;
+  v_unique_slug TEXT;
 BEGIN
-  INSERT INTO public.profiles (id, username, full_name, avatar_url, phone, facebook_url)
+  -- Base username from signup form or email
+  v_base_username := LOWER(COALESCE(
+    NEW.raw_user_meta_data->>'username', 
+    SPLIT_PART(NEW.email, '@', 1)
+  ));
+  
+  -- Get last 4 digits of phone (if provided) or short UUID hash
+  v_phone_suffix := COALESCE(
+    RIGHT(REGEXP_REPLACE(NEW.raw_user_meta_data->>'phone', '[^0-9]', '', 'g'), 4),
+    SUBSTR(REPLACE(NEW.id::text, '-', ''), 1, 4)
+  );
+  
+  -- Combine: username-xxxx (e.g. uvnb-0903 or uvnb-a3f2)
+  v_unique_slug := v_base_username || '-' || v_phone_suffix;
+
+  INSERT INTO public.profiles (id, username, full_name, avatar_url, phone, facebook_url, reputation_score)
   VALUES (
     NEW.id,
-    COALESCE(
-      NEW.raw_user_meta_data->>'username', 
-      SPLIT_PART(NEW.email, '@', 1) || '_' || SUBSTR(NEW.id::text, 1, 6)
-    ),
+    v_unique_slug,
     COALESCE(
       NEW.raw_user_meta_data->>'full_name',
       SPLIT_PART(NEW.email, '@', 1)
@@ -532,7 +548,8 @@ BEGIN
       'https://ui-avatars.com/api/?name=' || COALESCE(NEW.raw_user_meta_data->>'full_name', SPLIT_PART(NEW.email, '@', 1))
     ),
     NEW.raw_user_meta_data->>'phone',
-    NEW.raw_user_meta_data->>'facebook_url'
+    NEW.raw_user_meta_data->>'facebook_url',
+    0
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
