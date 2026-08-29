@@ -16,17 +16,7 @@ BEGIN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
 
-  -- Delete from dependent tables (manual cascade)
-  DELETE FROM public.messages WHERE sender_id = v_uid OR receiver_id = v_uid;
-  DELETE FROM public.reviews WHERE reviewer_id = v_uid OR reviewee_id = v_uid;
-  DELETE FROM public.bookings WHERE renter_id = v_uid;
-  
-  -- Listings images are tied to listings, so delete them first
-  DELETE FROM public.listing_images WHERE listing_id IN (SELECT id FROM public.listings WHERE owner_id = v_uid);
-  DELETE FROM public.listings WHERE owner_id = v_uid;
-  
-  -- Finally delete profile and user
-  DELETE FROM public.profiles WHERE id = v_uid;
+  -- With ON DELETE CASCADE applied to all tables, we just need to delete from auth.users
   DELETE FROM auth.users WHERE id = v_uid;
 END;
 $$;
