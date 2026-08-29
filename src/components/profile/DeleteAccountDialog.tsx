@@ -5,51 +5,60 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2, X, AlertTriangle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface DeleteAccountDialogProps {
   email: string
   phone: string | null
 }
 
-export function DeleteAccountDialog({ email, phone }: DeleteAccountDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [confirmEmail, setConfirmEmail] = useState('')
-  const [confirmPhone, setConfirmPhone] = useState('')
-  const [errorMsg, setErrorMsg] = useState('')
-
-  async function handleDelete(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setErrorMsg('')
-    
-    if (confirmEmail !== email) {
-      setErrorMsg('Email xác nhận không khớp!')
-      return
-    }
-    
-    if (phone && confirmPhone !== phone) {
-      setErrorMsg('Số điện thoại xác nhận không khớp!')
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      const res = await fetch('/api/account/delete', { method: 'POST' })
-      const data = await res.json()
-
-      if (!res.ok) {
-        setErrorMsg(data.error || 'Có lỗi xảy ra khi xóa tài khoản')
-        setIsLoading(false)
+  export function DeleteAccountDialog({ email, phone }: DeleteAccountDialogProps) {
+    const [isOpen, setIsOpen] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+    const [confirmEmail, setConfirmEmail] = useState('')
+    const [confirmPhone, setConfirmPhone] = useState('')
+    const [errorMsg, setErrorMsg] = useState('')
+    const router = useRouter()
+  
+    async function handleDelete(e: React.FormEvent<HTMLFormElement>) {
+      e.preventDefault()
+      setErrorMsg('')
+      
+      if (confirmEmail !== email) {
+        setErrorMsg('Email xác nhận không khớp!')
         return
       }
-
-      // Success — hard redirect to clear all cached state
-      window.location.href = '/'
-    } catch {
-      setErrorMsg('Không thể kết nối tới máy chủ. Vui lòng thử lại.')
-      setIsLoading(false)
+      
+      if (phone && confirmPhone !== phone) {
+        setErrorMsg('Số điện thoại xác nhận không khớp!')
+        return
+      }
+  
+      setIsLoading(true)
+      try {
+        const res = await fetch('/api/account/delete', { method: 'POST' })
+        const data = await res.json()
+  
+        if (!res.ok) {
+          setErrorMsg(data.error || 'Có lỗi xảy ra khi xóa tài khoản')
+          setIsLoading(false)
+          return
+        }
+  
+        // Success! Show toast and wait a moment for user to read it
+        toast.success('Đã xóa tài khoản thành công! Tạm biệt bạn.')
+        setIsOpen(false)
+        
+        setTimeout(() => {
+          router.push('/')
+          router.refresh()
+        }, 1500)
+      } catch {
+        setErrorMsg('Không thể kết nối tới máy chủ. Vui lòng thử lại.')
+        setIsLoading(false)
+      }
     }
-  }
 
   return (
     <>

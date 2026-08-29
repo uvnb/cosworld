@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
 export async function POST() {
   try {
@@ -109,6 +110,14 @@ export async function POST() {
       await supabase.auth.signOut()
     } catch {
       // Already deleted, ignore
+    }
+
+    // Force clear Supabase auth cookies just in case signOut failed
+    const cookieStore = await cookies()
+    for (const cookie of cookieStore.getAll()) {
+      if (cookie.name.startsWith('sb-')) {
+        cookieStore.delete(cookie.name)
+      }
     }
 
     return NextResponse.json({ success: true })
