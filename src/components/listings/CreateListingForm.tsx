@@ -18,7 +18,8 @@ import { ImagePlus, X, Loader2 } from 'lucide-react'
 
 const formSchema = z.object({
   title: z.string().min(5, 'Tiêu đề ít nhất 5 ký tự'),
-  character_name: z.string().min(1, 'Vui lòng nhập tên nhân vật/tựa game'),
+  category: z.enum(['costume', 'wig', 'props', 'shoes', 'accessories', 'studio', 'other']),
+  character_name: z.string().optional(),
   description: z.string().min(10, 'Mô tả ít nhất 10 ký tự'),
   listing_type: z.enum(['rent', 'sale', 'both']),
   size: z.enum(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size']),
@@ -28,9 +29,9 @@ const formSchema = z.object({
   buffer_days: z.string().min(1, 'Nhập số ngày buffer'),
   min_rental_days: z.string().min(1, 'Nhập số ngày thuê tối thiểu'),
   max_rental_days: z.string().min(1, 'Nhập số ngày thuê tối đa'),
-  district: z.string().min(1, 'Vui lòng chọn quận/huyện'),
-  city: z.string().min(1, 'Vui lòng chọn tỉnh/thành phố'),
-  includes: z.array(z.string()).min(1, 'Chọn ít nhất 1 món đồ đi kèm'),
+  district: z.string().min(1, 'Vui lòng nhập quận/huyện'),
+  city: z.string().min(1, 'Vui lòng nhập tỉnh/thành phố'),
+  includes: z.array(z.string()).optional(),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -43,15 +44,6 @@ const INCLUDE_OPTIONS = [
   { id: 'accessories', label: 'Phụ kiện nhỏ (Trang sức, mũ...)' }
 ]
 
-const CITIES = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Khác']
-// Simplified mock districts for demonstration
-const DISTRICTS: Record<string, string[]> = {
-  'Hồ Chí Minh': ['Quận 1', 'Quận 2', 'Quận 3', 'Quận Bình Thạnh', 'Quận Phú Nhuận', 'Khác'],
-  'Hà Nội': ['Ba Đình', 'Hoàn Kiếm', 'Đống Đa', 'Cầu Giấy', 'Khác'],
-  'Đà Nẵng': ['Hải Châu', 'Thanh Khê', 'Sơn Trà', 'Khác'],
-  'Khác': ['Khác']
-}
-
 export function CreateListingForm({ userId }: { userId: string }) {
   const router = useRouter()
   const [images, setImages] = useState<File[]>([])
@@ -62,6 +54,7 @@ export function CreateListingForm({ userId }: { userId: string }) {
   const { register, handleSubmit, setValue, watch, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      category: 'costume',
       listing_type: 'rent',
       size: 'M',
       buffer_days: '1',
@@ -75,7 +68,8 @@ export function CreateListingForm({ userId }: { userId: string }) {
   })
 
   const listingType = watch('listing_type')
-  const selectedCity = watch('city')
+  const category = watch('category')
+  const isStudio = category === 'studio'
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -129,7 +123,7 @@ export function CreateListingForm({ userId }: { userId: string }) {
 
       const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL 
         ? `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${key}`
-        : `https://pub-c2a417088b9042b49df67d165f3f0194.r2.dev/${key}` 
+        : `/api/image?key=${encodeURIComponent(key)}` 
 
       uploadedUrls.push(publicUrl)
     }
@@ -166,11 +160,12 @@ export function CreateListingForm({ userId }: { userId: string }) {
         .insert({
           owner_id: userId,
           title: data.title,
-          character_name: data.character_name,
+          category: data.category,
+          character_name: isStudio ? null : data.character_name,
           description: data.description,
           listing_type: data.listing_type,
-          size: data.size,
-          includes: data.includes,
+          size: isStudio ? null : data.size,
+          includes: isStudio ? [] : data.includes,
           price_per_day: data.price_per_day ? parseInt(data.price_per_day) : null,
           sale_price: data.sale_price ? parseInt(data.sale_price) : null,
           deposit_amount: parseInt(data.deposit_amount),
@@ -264,10 +259,28 @@ export function CreateListingForm({ userId }: { userId: string }) {
         </div>
 
         <div className="space-y-2">
-          <Label className="font-bold">Tên nhân vật / Tựa game (Anime) <span className="text-rose-500">*</span></Label>
-          <Input {...register('character_name')} placeholder="Ví dụ: Raiden Shogun - Genshin Impact" className="h-12 rounded-xl bg-slate-50 border-slate-200" />
-          {errors.character_name && <p className="text-rose-500 text-sm">{errors.character_name.message}</p>}
+          <Label className="font-bold">Danh mục sản phẩm/dịch vụ <span className="text-rose-500">*</span></Label>
+          <Select onValueChange={(val: any) => setValue('category', val)} defaultValue={watch('category')}>
+            <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn danh mục" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="costume">Trang phục (Costume)</SelectItem>
+              <SelectItem value="wig">Tóc giả (Wig)</SelectItem>
+              <SelectItem value="props">Đạo cụ / Vũ khí</SelectItem>
+              <SelectItem value="shoes">Giày dép</SelectItem>
+              <SelectItem value="accessories">Phụ kiện</SelectItem>
+              <SelectItem value="studio">Cho thuê Studio</SelectItem>
+              <SelectItem value="other">Khác</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
+
+        {!isStudio && (
+          <div className="space-y-2">
+            <Label className="font-bold">Tên nhân vật / Tựa game (Anime) <span className="text-rose-500">*</span></Label>
+            <Input {...register('character_name')} placeholder="Ví dụ: Raiden Shogun - Genshin Impact" className="h-12 rounded-xl bg-slate-50 border-slate-200" />
+            {errors.character_name && <p className="text-rose-500 text-sm">{errors.character_name.message}</p>}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -281,51 +294,55 @@ export function CreateListingForm({ userId }: { userId: string }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label className="font-bold">Size đồ</Label>
-            <Select onValueChange={(val: any) => setValue('size', val)} defaultValue={watch('size')}>
-              <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn size" /></SelectTrigger>
-              <SelectContent>
-                {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size'].map(s => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!isStudio && (
+            <div className="space-y-2">
+              <Label className="font-bold">Size đồ</Label>
+              <Select onValueChange={(val: any) => setValue('size', val)} defaultValue={watch('size')}>
+                <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn size" /></SelectTrigger>
+                <SelectContent>
+                  {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size'].map(s => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
 
-        <div className="space-y-3">
-          <Label className="font-bold">Tình trạng đồ (Bao gồm những gì?) <span className="text-rose-500">*</span></Label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <Controller
-              name="includes"
-              control={control}
-              render={({ field }) => (
-                <>
-                  {INCLUDE_OPTIONS.map((opt) => (
-                    <div key={opt.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={opt.id} 
-                        checked={field.value?.includes(opt.id)}
-                        onCheckedChange={(checked) => {
-                          const current = field.value || []
-                          const updated = checked 
-                            ? [...current, opt.id] 
-                            : current.filter((v: string) => v !== opt.id)
-                          field.onChange(updated)
-                        }}
-                      />
-                      <label htmlFor={opt.id} className="text-sm font-medium leading-none cursor-pointer">
-                        {opt.label}
-                      </label>
-                    </div>
-                  ))}
-                </>
-              )}
-            />
+        {!isStudio && (
+          <div className="space-y-3">
+            <Label className="font-bold">Tình trạng đồ (Bao gồm những gì?) <span className="text-rose-500">*</span></Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <Controller
+                name="includes"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    {INCLUDE_OPTIONS.map((opt) => (
+                      <div key={opt.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={opt.id} 
+                          checked={field.value?.includes(opt.id)}
+                          onCheckedChange={(checked) => {
+                            const current = field.value || []
+                            const updated = checked 
+                              ? [...current, opt.id] 
+                              : current.filter((v: string) => v !== opt.id)
+                            field.onChange(updated)
+                          }}
+                        />
+                        <label htmlFor={opt.id} className="text-sm font-medium leading-none cursor-pointer">
+                          {opt.label}
+                        </label>
+                      </div>
+                    ))}
+                  </>
+                )}
+              />
+            </div>
+            {errors.includes && <p className="text-rose-500 text-sm">{errors.includes.message}</p>}
           </div>
-          {errors.includes && <p className="text-rose-500 text-sm">{errors.includes.message}</p>}
-        </div>
+        )}
 
         <div className="space-y-2">
           <Label className="font-bold">Mô tả chi tiết (Lưu ý, hỏng hóc...)</Label>
@@ -408,27 +425,13 @@ export function CreateListingForm({ userId }: { userId: string }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
           <div className="space-y-2">
             <Label className="font-bold">Tỉnh / Thành phố <span className="text-rose-500">*</span></Label>
-            <Select onValueChange={(val: any) => { setValue('city', val); setValue('district', '') }} defaultValue={watch('city')}>
-              <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn Tỉnh/Thành" /></SelectTrigger>
-              <SelectContent>
-                {CITIES.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input {...register('city')} placeholder="Ví dụ: TP.HCM" className="h-12 rounded-xl bg-slate-50 border-slate-200" />
             {errors.city && <p className="text-rose-500 text-sm">{errors.city.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label className="font-bold">Quận / Huyện <span className="text-rose-500">*</span></Label>
-            <Select onValueChange={(val: any) => setValue('district', val)} value={watch('district')} disabled={!selectedCity}>
-              <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn Quận/Huyện" /></SelectTrigger>
-              <SelectContent>
-                {(DISTRICTS[selectedCity] || []).map(d => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input {...register('district')} placeholder="Ví dụ: Quận 1" className="h-12 rounded-xl bg-slate-50 border-slate-200" />
             {errors.district && <p className="text-rose-500 text-sm">{errors.district.message}</p>}
           </div>
         </div>
