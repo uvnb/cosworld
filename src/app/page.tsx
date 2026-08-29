@@ -6,14 +6,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const resolvedParams = await searchParams
   const q = resolvedParams?.q || ''
 
-  const supabase = await createClient()
-  const { data: events } = await supabase
-    .from('events')
-    .select('*')
-    .eq('status', 'approved')
-    .gte('end_date', new Date().toISOString().split('T')[0])
-    .order('start_date', { ascending: true })
-    .limit(3)
+
 
   return (
     <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full flex-1">
@@ -41,51 +34,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
         <ListingsSection initialQuery={q} />
 
-        {/* Bottom Widgets (Moved from Sidebar) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 pt-8 border-t border-slate-200">
-          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <span className="w-4 h-4 text-brand-600 flex items-center justify-center"><Users className="w-full h-full" /></span>
-                Lập team / Tuyển staff
-              </h3>
-              <button className="text-[11px] font-bold text-brand-600 hover:text-brand-700 flex items-center">
-                Xem tất cả <ChevronRight className="w-3 h-3" />
-              </button>
-            </div>
-            <div className="space-y-3.5">
-              <div className="text-sm text-slate-500 text-center py-4">Chưa có bài đăng nào</div>
-            </div>
-          </div>
 
-          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <span className="w-4 h-4 text-indigo-600 flex items-center justify-center"><Calendar className="w-full h-full" /></span>
-                Sự kiện sắp diễn ra
-              </h3>
-              <button className="text-[11px] font-bold text-brand-600 hover:text-brand-700 flex items-center">
-                Xem tất cả <ChevronRight className="w-3 h-3" />
-              </button>
-            </div>
-            <div className="space-y-3.5">
-              {events && events.length > 0 ? events.map(evt => (
-                <div key={evt.id} className="flex gap-3 items-center group cursor-pointer hover:bg-slate-50 p-2 -mx-2 rounded-xl transition">
-                  <img src={evt.poster_url || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=120&auto=format&fit=crop&q=80"} className="w-12 h-12 rounded-xl object-cover shrink-0" alt="Event" />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-xs font-bold text-slate-800 truncate group-hover:text-brand-600 transition">{evt.name}</h4>
-                    <div className="text-[10px] text-slate-400 mt-1 flex flex-col gap-0.5">
-                      <span>📍 {evt.venue ? `${evt.venue}, ` : ''}{evt.city}</span>
-                      <span className="text-indigo-600 font-bold">{new Date(evt.start_date).toLocaleDateString('vi-VN')}</span>
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <div className="text-sm text-slate-500 text-center py-4">Chưa có sự kiện nào</div>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
     </main>
   )

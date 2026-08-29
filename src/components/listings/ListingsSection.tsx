@@ -70,18 +70,18 @@ export function ListingsSection({ initialQuery }: { initialQuery?: string }) {
               {/* Type Filter */}
               <div className="space-y-3">
                 <label className="text-xs font-bold text-slate-700">Hình thức</label>
-                <div className="flex flex-col gap-2">
+                <div className="flex bg-slate-100 p-1 rounded-2xl w-full">
                   {(['all', 'rent', 'sale'] as const).map(mode => (
                     <button
                       key={mode}
                       onClick={() => setFilters({ ...filters, listingMode: mode })}
-                      className={`text-left px-4 py-2.5 text-xs font-bold rounded-xl transition border ${
+                      className={`flex-1 text-center py-2 text-[11px] sm:text-xs font-bold rounded-xl transition ${
                         filters.listingMode === mode 
-                          ? 'bg-brand-50 border-brand-200 text-brand-700 shadow-sm' 
-                          : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200 hover:bg-slate-50'
+                          ? 'bg-white text-slate-900 shadow-sm' 
+                          : 'text-slate-500 hover:text-slate-700'
                       }`}
                     >
-                      {mode === 'all' ? 'Tất cả' : mode === 'rent' ? 'Chỉ đồ thuê' : 'Bán thanh lý'}
+                      {mode === 'all' ? 'Tất cả' : mode === 'rent' ? 'Thuê' : 'Pass lại'}
                     </button>
                   ))}
                 </div>
