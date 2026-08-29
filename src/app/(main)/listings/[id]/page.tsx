@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { MapPin, MessageCircle, ShieldCheck } from 'lucide-react'
+import { MapPin, MessageCircle, ShieldCheck, Heart } from 'lucide-react'
 import { ListingCarousel } from '@/components/listings/ListingCarousel'
 
 
@@ -145,8 +145,8 @@ export default async function ListingDetailPage({
                     ? (listing.owner[0]?.full_name || listing.owner[0]?.username) 
                     : (listing.owner?.full_name || listing.owner?.username || 'Cosplayer')}
                 </div>
-                <div className="text-xs text-amber-500 font-bold mt-0.5">
-                  ★ {Array.isArray(listing.owner) ? listing.owner[0]?.reputation_score : listing.owner?.reputation_score || 5.0} uy tín
+                <div className="text-xs text-rose-500 font-bold mt-0.5 flex items-center gap-1">
+                  <Heart className="w-3.5 h-3.5 fill-current" /> {Array.isArray(listing.owner) ? listing.owner[0]?.reputation_score : listing.owner?.reputation_score || 5.0} uy tín
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
