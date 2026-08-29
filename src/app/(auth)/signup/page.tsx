@@ -24,53 +24,57 @@ export default async function SignupPage({
 
         <form className="space-y-4" action={signup}>
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Tên người dùng (Username) <span className="text-red-500">*</span></Label>
             <Input
               id="username"
               name="username"
               type="text"
-              placeholder="cosplayer123"
+              placeholder="Ví dụ: cosplayer123 (viết liền, không dấu)"
+              pattern="^\S+$"
+              title="Username không được chứa dấu cách"
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="m@example.com"
+              placeholder="Ví dụ: ban@gmail.com (Dùng để đăng nhập)"
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Số điện thoại</Label>
+            <Label htmlFor="phone">Số điện thoại <span className="text-slate-400 text-xs font-normal">(Tùy chọn)</span></Label>
             <Input
               id="phone"
               name="phone"
               type="tel"
-              placeholder="0987654321"
+              placeholder="Ví dụ: 0987654321"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="facebook_url">Link Facebook</Label>
+            <Label htmlFor="facebook_url">Link Facebook <span className="text-slate-400 text-xs font-normal">(Tùy chọn)</span></Label>
             <Input
               id="facebook_url"
               name="facebook_url"
               type="url"
-              placeholder="https://facebook.com/username"
+              placeholder="Ví dụ: https://facebook.com/username"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Mật khẩu</Label>
+            <Label htmlFor="password">Mật khẩu <span className="text-red-500">*</span></Label>
             <Input
               id="password"
               name="password"
               type="password"
+              placeholder="Tối thiểu 6 ký tự"
+              minLength={6}
               required
             />
           </div>
-          <Button className="w-full" type="submit">
+          <Button className="w-full bg-brand-600 hover:bg-brand-700 font-bold" type="submit">
             Đăng ký
           </Button>
 
