@@ -19,7 +19,7 @@ export function ListingCarousel({ images }: { images: string[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="relative w-full aspect-[3/4] sm:aspect-[4/5] rounded-3xl overflow-hidden bg-slate-100 group">
+      <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden bg-slate-100 group">
         <img
           src={images[currentIndex]}
           alt={`Hình ${currentIndex + 1}`}

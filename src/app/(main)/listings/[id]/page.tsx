@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { MapPin, MessageCircle, ShieldCheck } from 'lucide-react'
 import { ListingCarousel } from '@/components/listings/ListingCarousel'
-import { BookingForm } from '@/components/bookings/BookingForm'
+
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
@@ -39,7 +39,7 @@ export default async function ListingDetailPage({
     .from('listings')
     .select(`
       *,
-      owner:owner_id(username, avatar_url, phone, reputation_score),
+      owner:owner_id(username, full_name, avatar_url, phone, reputation_score),
       images:listing_images(r2_url, display_order)
     `)
     .eq('id', resolvedParams.id)
@@ -78,13 +78,17 @@ export default async function ListingDetailPage({
               <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${isRent ? 'bg-brand-100 text-brand-700' : 'bg-indigo-100 text-indigo-700'}`}>
                 {listing.listing_type === 'both' ? 'Thuê & Bán' : isRent ? 'Cho Thuê' : 'Bán Pass'}
               </span>
-              <span className="bg-slate-100 text-slate-700 px-2.5 py-1 text-xs font-bold rounded-full">
-                Size {listing.size}
-              </span>
+              {listing.category !== 'studio' && listing.size && (
+                <span className="bg-slate-100 text-slate-700 px-2.5 py-1 text-xs font-bold rounded-full">
+                  Size {listing.size}
+                </span>
+              )}
             </div>
             
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
-              {listing.title}
+              {isRent ? 'Cho thuê ' : 'Thanh lý '}{
+                { costume: 'Trang phục', wig: 'Tóc giả', props: 'Vũ khí / Đạo cụ', shoes: 'Giày dép', accessories: 'Phụ kiện', studio: 'Studio' }[listing.category as string] || ''
+              } {listing.title} {listing.district ? `- ${listing.district}` : ''}
             </h1>
             
             <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-wrap gap-6 items-center">
@@ -127,7 +131,7 @@ export default async function ListingDetailPage({
 
           <div className="pt-6 border-t border-slate-100">
             <h3 className="font-bold text-slate-900 mb-4">Thông tin chủ đồ</h3>
-            <div className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200">
+            <div className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white">
               <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
                 {Array.isArray(listing.owner) ? (
                   listing.owner[0]?.avatar_url && <img src={listing.owner[0].avatar_url} alt="" className="w-full h-full object-cover" />
@@ -135,44 +139,30 @@ export default async function ListingDetailPage({
                   listing.owner?.avatar_url && <img src={listing.owner.avatar_url} alt="" className="w-full h-full object-cover" />
                 )}
               </div>
-              <div className="flex-1">
-                <div className="font-bold text-slate-900">
-                  {Array.isArray(listing.owner) ? listing.owner[0]?.username : listing.owner?.username || 'Cosplayer'}
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-slate-900 truncate">
+                  {Array.isArray(listing.owner) 
+                    ? (listing.owner[0]?.full_name || listing.owner[0]?.username) 
+                    : (listing.owner?.full_name || listing.owner?.username || 'Cosplayer')}
                 </div>
                 <div className="text-xs text-amber-500 font-bold mt-0.5">
                   ★ {Array.isArray(listing.owner) ? listing.owner[0]?.reputation_score : listing.owner?.reputation_score || 5.0} uy tín
                 </div>
               </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {zaloDeepLink && (
+                  <a href={zaloDeepLink} target="_blank" rel="noreferrer" className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                    <MessageCircle className="w-3.5 h-3.5" /> Zalo
+                  </a>
+                )}
+                <button className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                  Nhắn tin
+                </button>
+              </div>
             </div>
           </div>
 
-          {isRent && (
-            <div className="pt-6 sticky bottom-4 z-10 bg-white/80 backdrop-blur-md -mx-4 sm:mx-0 rounded-2xl border border-slate-200">
-              <BookingForm 
-                listingId={listing.id} 
-                pricePerDay={listing.price_per_day} 
-                minDays={listing.min_rental_days || 1}
-                zaloPhone={zaloPhone}
-              />
-            </div>
-          )}
-
-          {isSale && !isRent && (
-            <div className="pt-6 sticky bottom-4 z-10 bg-white/80 backdrop-blur-md p-4 -mx-4 sm:mx-0 rounded-2xl border border-slate-200 shadow-xl shadow-brand-500/10">
-              {zaloDeepLink ? (
-                <a href={zaloDeepLink} target="_blank" rel="noreferrer">
-                  <Button className="w-full h-12 text-base font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/20">
-                    <MessageCircle className="w-5 h-5 mr-2" />
-                    Chat Zalo để mua pass lại
-                  </Button>
-                </a>
-              ) : (
-                <Button disabled className="w-full h-12 text-base font-bold rounded-xl">
-                  Chủ đồ chưa cập nhật số điện thoại
-                </Button>
-              )}
-            </div>
-          )}
+          {/* Xóa khối BookingForm cũ chưa dùng đến theo yêu cầu, các thao tác liên hệ đều dồn về Thẻ Chủ Đồ */}
         </div>
       </div>
     </div>
