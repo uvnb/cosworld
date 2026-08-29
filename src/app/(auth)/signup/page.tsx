@@ -1,9 +1,6 @@
 import Link from 'next/link'
-import { signup } from '../actions'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { ArrowLeft, Sparkles, ShieldCheck, Zap } from 'lucide-react'
+import { SignupForm } from '@/components/auth/SignupForm'
 
 export default async function SignupPage({
   searchParams,
@@ -40,7 +37,7 @@ export default async function SignupPage({
             
             <h1 className="text-4xl font-black text-white leading-tight mb-6">
               Cộng đồng Cosplay <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 to-indigo-300">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-brand-300">
                 lớn nhất Việt Nam
               </span>
             </h1>
@@ -85,8 +82,8 @@ export default async function SignupPage({
       </div>
 
       {/* Right Column - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative">
-        <div className="w-full max-w-md">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-y-auto max-h-screen">
+        <div className="w-full max-w-md py-12">
           {/* Mobile Back Button */}
           <Link href="/" className="lg:hidden inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 transition mb-8">
             <ArrowLeft className="w-4 h-4" />
@@ -102,82 +99,7 @@ export default async function SignupPage({
             </p>
           </div>
 
-          <form className="space-y-5" action={signup}>
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-slate-700 font-bold">Tên người dùng (Username) <span className="text-rose-500">*</span></Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="Ví dụ: cosplayer123 (viết liền, không dấu)"
-                pattern="^\S+$"
-                title="Username không được chứa dấu cách"
-                required
-                className="h-12 bg-slate-50 border-slate-200 focus:bg-white focus:ring-brand-500 focus:border-brand-500 transition-all rounded-xl"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-700 font-bold">Email <span className="text-rose-500">*</span></Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Ví dụ: ban@gmail.com (Dùng để đăng nhập)"
-                required
-                className="h-12 bg-slate-50 border-slate-200 focus:bg-white focus:ring-brand-500 focus:border-brand-500 transition-all rounded-xl"
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-slate-700 font-bold">Số điện thoại <span className="text-slate-400 font-normal ml-1">Tùy chọn</span></Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  placeholder="0987654321"
-                  className="h-12 bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-xl"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="facebook_url" className="text-slate-700 font-bold">Link Facebook <span className="text-slate-400 font-normal ml-1">Tùy chọn</span></Label>
-                <Input
-                  id="facebook_url"
-                  name="facebook_url"
-                  type="url"
-                  placeholder="https://facebook.com/..."
-                  className="h-12 bg-slate-50 border-slate-200 focus:bg-white transition-all rounded-xl"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2 pt-2">
-              <Label htmlFor="password" className="text-slate-700 font-bold">Mật khẩu <span className="text-rose-500">*</span></Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Tối thiểu 6 ký tự"
-                minLength={6}
-                required
-                className="h-12 bg-slate-50 border-slate-200 focus:bg-white focus:ring-brand-500 focus:border-brand-500 transition-all rounded-xl"
-              />
-            </div>
-
-            <Button className="w-full h-12 mt-4 bg-brand-600 hover:bg-brand-700 text-white font-bold text-base rounded-xl shadow-lg shadow-brand-600/25 transition-all active:scale-[0.98]" type="submit">
-              Đăng ký tài khoản
-            </Button>
-
-            {resolvedSearchParams?.message && (
-              <div className="mt-4 p-4 bg-rose-50 border border-rose-100 text-rose-700 text-sm font-medium rounded-xl flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-rose-600 font-bold text-xs">!</span>
-                </div>
-                <p>{resolvedSearchParams.message}</p>
-              </div>
-            )}
-          </form>
+          <SignupForm message={resolvedSearchParams?.message} />
 
           <div className="mt-10 text-center">
             <p className="text-slate-500">

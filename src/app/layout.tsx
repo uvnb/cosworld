@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 
 import { Providers } from "@/components/Providers"
 import { TopBar } from "@/components/layout/TopBar"
+import { ConditionalTopBar } from "@/components/layout/ConditionalTopBar"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -25,7 +26,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="min-h-full flex flex-col">
         <Providers>
-          <TopBar />
+          <ConditionalTopBar>
+            <TopBar />
+          </ConditionalTopBar>
+
           {children}
           
           {/* Global Footer */}
