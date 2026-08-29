@@ -88,6 +88,8 @@ export async function updateProfile(formData: FormData) {
   revalidatePath('/profile')
   revalidatePath(`/profile/${username}`)
   revalidatePath('/')
+  
+  return { username }
 }
 
 export async function deleteAccount() {

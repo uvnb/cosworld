@@ -25,12 +25,17 @@ export function EditProfileDialog({ profile, email, triggerType = 'edit' }: Edit
     setIsLoading(true)
     const formData = new FormData(e.currentTarget)
     try {
-      await updateProfile(formData)
+      const result = await updateProfile(formData)
       toast.success('Cập nhật hồ sơ thành công!')
-      setIsOpen(false)
+      
+      // Sử dụng hard redirect thay vì router.push/refresh để tránh lỗi đen màn hình (React Error 441)
+      if (result && result.username) {
+        window.location.href = `/profile/${result.username}`
+      } else {
+        window.location.reload()
+      }
     } catch (error: any) {
       toast.error(error.message || 'Có lỗi xảy ra')
-    } finally {
       setIsLoading(false)
     }
   }
