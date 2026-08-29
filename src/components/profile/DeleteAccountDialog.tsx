@@ -57,12 +57,13 @@ interface DeleteAccountDialogProps {
 
   return (
     <>
-      <button 
+      <Button 
+        variant="destructive"
         onClick={() => setIsOpen(true)}
-        className="text-xs text-rose-500 hover:underline font-medium mt-2 block text-right"
+        className="w-full text-sm font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 shadow-none border border-rose-200"
       >
         Xóa tài khoản
-      </button>
+      </Button>
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
