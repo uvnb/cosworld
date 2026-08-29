@@ -146,7 +146,14 @@ export default async function ListingDetailPage({
                     : (listing.owner?.full_name || listing.owner?.username || 'Cosplayer')}
                 </div>
                 <div className="text-xs text-rose-500 font-bold mt-0.5 flex items-center gap-1">
-                  <Heart className="w-3.5 h-3.5 fill-current" /> {Array.isArray(listing.owner) ? listing.owner[0]?.reputation_score : listing.owner?.reputation_score || 5.0} uy tín
+                  <Heart className="w-3.5 h-3.5 fill-current" /> {
+                    (() => {
+                      const ownerObj = Array.isArray(listing.owner) ? listing.owner[0] : listing.owner;
+                      return ownerObj?.reputation_score !== undefined && ownerObj?.reputation_score !== null
+                        ? Math.floor(ownerObj.reputation_score)
+                        : 0;
+                    })()
+                  } uy tín
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
