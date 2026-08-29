@@ -46,14 +46,9 @@ interface DeleteAccountDialogProps {
           return
         }
   
-        // Success! Show toast and wait a moment for user to read it
-        toast.success('Đã xóa tài khoản thành công! Tạm biệt bạn.')
+        // Success! Instantly navigate away to prevent React errors on the current page
         setIsOpen(false)
-        
-        // Use hard redirect to completely avoid Next.js router transition errors (React Error 441)
-        setTimeout(() => {
-          window.location.href = '/'
-        }, 1500)
+        window.location.href = '/account-deleted'
       } catch {
         setErrorMsg('Không thể kết nối tới máy chủ. Vui lòng thử lại.')
         setIsLoading(false)
