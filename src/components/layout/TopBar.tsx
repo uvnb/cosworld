@@ -6,6 +6,11 @@ import { Button } from '@/components/ui/button'
 export async function TopBar() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  let profile = null
+  if (user) {
+    const { data } = await supabase.from('profiles').select('username, avatar_url').eq('id', user.id).single()
+    profile = data
+  }
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
@@ -61,14 +66,14 @@ export async function TopBar() {
             <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
               <Link href="/profile" className="flex items-center gap-2.5 cursor-pointer p-1.5 rounded-xl hover:bg-slate-100/80 transition" title="Xem trang cá nhân">
                 <img 
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" 
+                  src={profile?.avatar_url || "https://ui-avatars.com/api/?name=" + (profile?.username || 'User')} 
                   alt="User Avatar" 
                   className="w-8 h-8 rounded-full object-cover ring-2 ring-brand-200" 
                 />
-                <div className="hidden lg:block text-left">
-                  <span className="text-xs font-bold text-slate-800 block leading-tight">{user.email?.split('@')[0] || 'Khách'}</span>
+                <span className="hidden lg:block text-left">
+                  <span className="text-xs font-bold text-slate-800 block leading-tight">{profile?.username || user.email?.split('@')[0] || 'Khách'}</span>
                   <span className="text-[10px] text-brand-600 font-semibold">Xem profile</span>
-                </div>
+                </span>
               </Link>
               <Link href="/calendar">
                 <Button variant="ghost" className="rounded-xl text-xs font-bold text-slate-600">

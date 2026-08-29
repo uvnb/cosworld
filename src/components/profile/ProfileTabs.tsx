@@ -83,7 +83,7 @@ export function ProfileTabs({ listings, bookings, reviews }: ProfileTabsProps) {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-slate-900">{booking.total_price?.toLocaleString('vi-VN')}đ</p>
-                    <p className="text-xs text-slate-400">Từ {new Date(booking.start_date).toLocaleDateString('vi-VN')} - {new Date(booking.end_date).toLocaleDateString('vi-VN')}</p>
+                    <p className="text-xs text-slate-400">Từ {booking.start_date.split('T')[0]} - {booking.end_date.split('T')[0]}</p>
                   </div>
                 </div>
               ))

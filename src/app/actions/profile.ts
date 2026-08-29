@@ -80,3 +80,30 @@ export async function deleteAccount() {
   await supabase.auth.signOut()
   revalidatePath('/')
 }
+
+export async function voteReputation(profile_id: string, vote_value: number) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Not authenticated')
+  }
+
+  if (user.id === profile_id) {
+    throw new Error('Bạn không thể tự đánh giá chính mình')
+  }
+
+  const { error } = await supabase
+    .from('reputation_votes')
+    .upsert(
+      { voter_id: user.id, profile_id, vote_value },
+      { onConflict: 'voter_id, profile_id' }
+    )
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  revalidatePath('/profile')
+  revalidatePath(`/profile/[id]`, 'page')
+}
