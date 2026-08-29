@@ -44,22 +44,6 @@ export function ListingsSection({ initialQuery }: { initialQuery?: string }) {
         </div>
         
         <div className="flex items-center gap-3 self-start sm:self-auto">
-          <div className="flex bg-slate-100 p-1 rounded-2xl">
-            {(['all', 'rent', 'sale'] as const).map(mode => (
-              <button
-                key={mode}
-                onClick={() => setFilters({ ...filters, listingMode: mode })}
-                className={`px-4 py-2 text-sm font-bold rounded-xl transition ${
-                  filters.listingMode === mode 
-                    ? 'bg-white text-slate-900 shadow-sm' 
-                    : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                {mode === 'all' ? 'Tất cả' : mode === 'rent' ? 'Chỉ đồ thuê' : 'Bán thanh lý'}
-              </button>
-            ))}
-          </div>
-          
           <Link href="/listings/new">
             <button className="bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm px-5 py-2.5 rounded-2xl flex items-center gap-2 transition shadow-md shadow-brand-600/20">
               <Plus className="w-4 h-4" /> Đăng đồ cho thuê / Bán pass
@@ -82,6 +66,26 @@ export function ListingsSection({ initialQuery }: { initialQuery?: string }) {
             </div>
             
             <div className="space-y-6">
+              
+              {/* Type Filter */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-slate-700">Hình thức</label>
+                <div className="flex flex-col gap-2">
+                  {(['all', 'rent', 'sale'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => setFilters({ ...filters, listingMode: mode })}
+                      className={`text-left px-4 py-2.5 text-xs font-bold rounded-xl transition border ${
+                        filters.listingMode === mode 
+                          ? 'bg-brand-50 border-brand-200 text-brand-700 shadow-sm' 
+                          : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {mode === 'all' ? 'Tất cả' : mode === 'rent' ? 'Chỉ đồ thuê' : 'Bán thanh lý'}
+                    </button>
+                  ))}
+                </div>
+              </div>
               
               {/* Size Filter */}
               <div className="space-y-3">
