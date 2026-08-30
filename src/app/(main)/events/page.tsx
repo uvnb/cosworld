@@ -62,11 +62,18 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
             </div>
           </div>
           
-          <Link href="/events/create" className="shrink-0">
-            <button className="px-8 py-3.5 bg-white text-indigo-900 hover:bg-indigo-50 rounded-full text-base font-black transition flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95">
-              <Plus className="w-5 h-5" /> Đăng sự kiện
-            </button>
-          </Link>
+          <div className="flex flex-col gap-3 shrink-0">
+            <Link href="/events/create" className="w-full">
+              <button className="w-full px-8 py-3.5 bg-white text-indigo-900 hover:bg-indigo-50 rounded-full text-base font-black transition flex items-center justify-center gap-2 shadow-xl hover:scale-105 active:scale-95">
+                <Plus className="w-5 h-5" /> Đăng sự kiện
+              </button>
+            </Link>
+            <Link href="/admin/events" className="w-full">
+              <button className="w-full px-8 py-3 bg-indigo-900/50 hover:bg-indigo-900 text-white rounded-full text-sm font-bold transition flex items-center justify-center gap-2 border border-white/20">
+                Quản lý / Duyệt bài
+              </button>
+            </Link>
+          </div>
         </div>
         
         {/* Background Decorative Elements */}
