@@ -20,7 +20,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
     query = query.ilike('title', `%${q}%`)
   }
   if (location) {
-    query = query.eq('location', location)
+    query = query.ilike('location', `%${location}%`)
   }
   if (status) {
     query = query.eq('status', status)
@@ -82,12 +82,13 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
 
               <div>
                 <h4 className="text-xs font-bold text-slate-700 mb-3">Khu vực</h4>
-                <select name="location" defaultValue={location} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-brand-500 appearance-none">
-                  <option value="">Toàn quốc</option>
-                  <option value="Hà Nội">Hà Nội</option>
-                  <option value="TP. HCM">TP. HCM</option>
-                  <option value="Đà Nẵng">Đà Nẵng</option>
-                </select>
+                <input 
+                  type="text" 
+                  name="location"
+                  defaultValue={location}
+                  placeholder="Hà Nội, Cần Thơ..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-brand-500 outline-none"
+                />
               </div>
 
               <div>

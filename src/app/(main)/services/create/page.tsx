@@ -12,7 +12,7 @@ export default function CreateRecruitmentPage() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  const availableRoles = ['Cosplayer', 'Photographer', 'Makeup Artist', 'Staff hỗ trợ', 'Studio']
+  const availableRoles = ['Cosplayer', 'Photographer', 'Makeup Artist', 'Staff hỗ trợ']
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -73,14 +73,14 @@ export default function CreateRecruitmentPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-900 flex items-center gap-2"><MapPin className="w-4 h-4 text-slate-500"/> Khu vực <span className="text-red-500">*</span></label>
-              <select name="location" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-brand-500 outline-none transition appearance-none">
-                <option value="">Chọn khu vực</option>
-                <option value="Hà Nội">Hà Nội</option>
-                <option value="TP. HCM">TP. HCM</option>
-                <option value="Đà Nẵng">Đà Nẵng</option>
-                <option value="Toàn quốc">Toàn quốc (Remote)</option>
-              </select>
+              <label className="text-sm font-bold text-slate-900 flex items-center gap-2"><MapPin className="w-4 h-4 text-slate-500"/> Khu vực / Địa chỉ <span className="text-red-500">*</span></label>
+              <input 
+                type="text" 
+                name="location" 
+                required
+                placeholder="VD: Công viên Yên Sở, Hà Nội"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-brand-500 outline-none transition"
+              />
             </div>
 
             <div className="space-y-2">

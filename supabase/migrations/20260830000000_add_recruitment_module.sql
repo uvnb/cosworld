@@ -93,3 +93,8 @@ CREATE POLICY "Recruitment authors can delete team members" ON team_members
   FOR DELETE USING (
     auth.uid() IN (SELECT author_id FROM recruitments WHERE id = team_members.recruitment_id)
   );
+
+-- Grant permissions (Required for some Supabase setups when creating tables via SQL)
+GRANT ALL ON TABLE public.recruitments TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.recruitment_applications TO anon, authenticated, service_role;
+GRANT ALL ON TABLE public.team_members TO anon, authenticated, service_role;
