@@ -1,7 +1,12 @@
+-- Xóa các bảng cũ bị lỗi (do reference sai tới auth.users thay vì profiles)
+DROP TABLE IF EXISTS team_members CASCADE;
+DROP TABLE IF EXISTS recruitment_applications CASCADE;
+DROP TABLE IF EXISTS recruitments CASCADE;
+
 -- 1. BẢNG BÀI ĐĂNG TUYỂN DỤNG (recruitments)
 CREATE TABLE recruitments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  author_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  author_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   roles TEXT[] NOT NULL,
@@ -15,7 +20,6 @@ CREATE TABLE recruitments (
 -- Enable RLS
 ALTER TABLE recruitments ENABLE ROW LEVEL SECURITY;
 
--- Policies for recruitments
 CREATE POLICY "Public read access for recruitments" ON recruitments
   FOR SELECT USING (true);
 
@@ -33,7 +37,7 @@ CREATE POLICY "Users can delete their own recruitments" ON recruitments
 CREATE TABLE recruitment_applications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   recruitment_id UUID REFERENCES recruitments(id) ON DELETE CASCADE NOT NULL,
-  applicant_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  applicant_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   applied_role TEXT NOT NULL,
   message TEXT,
   status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED')),
@@ -44,8 +48,6 @@ CREATE TABLE recruitment_applications (
 -- Enable RLS
 ALTER TABLE recruitment_applications ENABLE ROW LEVEL SECURITY;
 
--- Policies for applications
--- Only the applicant or the author of the recruitment can see the application
 CREATE POLICY "Read access for applicants and recruitment authors" ON recruitment_applications
   FOR SELECT USING (
     auth.uid() = applicant_id OR 
@@ -55,7 +57,6 @@ CREATE POLICY "Read access for applicants and recruitment authors" ON recruitmen
 CREATE POLICY "Applicants can insert applications" ON recruitment_applications
   FOR INSERT WITH CHECK (auth.uid() = applicant_id);
 
--- Only author of the recruitment can update the application status
 CREATE POLICY "Recruitment authors can update application status" ON recruitment_applications
   FOR UPDATE USING (
     auth.uid() IN (SELECT author_id FROM recruitments WHERE id = recruitment_applications.recruitment_id)
@@ -69,7 +70,7 @@ CREATE POLICY "Applicants can delete their own applications" ON recruitment_appl
 CREATE TABLE team_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   recruitment_id UUID REFERENCES recruitments(id) ON DELETE CASCADE NOT NULL,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   role TEXT NOT NULL,
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(recruitment_id, user_id)
@@ -78,12 +79,9 @@ CREATE TABLE team_members (
 -- Enable RLS
 ALTER TABLE team_members ENABLE ROW LEVEL SECURITY;
 
--- Policies for team members
--- Team members are public for now, or visible to team only? Let's make it public.
 CREATE POLICY "Public read access for team_members" ON team_members
   FOR SELECT USING (true);
 
--- Only recruitment authors can insert team members
 CREATE POLICY "Recruitment authors can insert team members" ON team_members
   FOR INSERT WITH CHECK (
     auth.uid() IN (SELECT author_id FROM recruitments WHERE id = team_members.recruitment_id)
