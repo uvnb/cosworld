@@ -11,8 +11,16 @@ export async function manageEvent(eventId: string, status: 'APPROVED' | 'REJECTE
     return { error: 'Unauthorized' }
   }
 
-  // Trong thực tế cần check user.role === 'admin'
-  // Tuy nhiên ở MVP, ta giả định user truy cập được trang admin là có quyền
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('roles')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !profile.roles?.includes('admin')) {
+    return { error: 'Forbidden: Bạn không có quyền duyệt bài' }
+  }
+
   const { error } = await supabase
     .from('events')
     .update({ status })

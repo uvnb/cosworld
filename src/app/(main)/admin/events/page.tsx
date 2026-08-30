@@ -12,6 +12,17 @@ export default async function AdminEventsDashboard() {
     redirect('/login?message=Vui lòng đăng nhập')
   }
 
+  // Check if user is admin
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('roles')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !profile.roles?.includes('admin')) {
+    redirect('/events?message=Bạn không có quyền truy cập trang Admin')
+  }
+
   // Fetch pending events
   const { data: pendingEvents } = await supabase
     .from('events')

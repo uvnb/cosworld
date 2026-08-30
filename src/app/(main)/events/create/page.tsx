@@ -2,188 +2,149 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
-import { toast } from 'sonner'
-import { Loader2, ImagePlus, X } from 'lucide-react'
+import { Loader2, ImagePlus, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+
+function generateSlug(title: string) {
+  return title
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+    + '-' + Date.now().toString().slice(-6)
+}
 
 export default function CreateEventPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
   const supabase = createClient()
-
-  const [posterFile, setPosterFile] = useState<File | null>(null)
-  const [posterPreview, setPosterPreview] = useState<string | null>(null)
-
-  const handleFilePreview = async (file: File) => {
-    try {
-      const imageCompression = (await import('browser-image-compression')).default
-      const compressedFile = await imageCompression(file, {
-        maxSizeMB: 1, // Poster can be up to 1MB to preserve text
-        maxWidthOrHeight: 1920,
-        useWebWorker: true,
-        fileType: 'image/webp'
-      })
-      setPosterFile(compressedFile)
-      setPosterPreview(URL.createObjectURL(compressedFile))
-    } catch (error) {
-      toast.error('Lỗi khi xử lý ảnh')
-    }
-  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
+    setErrorMsg('')
+    setSuccessMsg('')
+    
     const formData = new FormData(e.currentTarget)
     
-    let poster_url = null
     try {
-      if (posterFile) {
-        toast.info('Đang tải ảnh poster lên...')
-        const fileExt = 'webp'
-        const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
-        const filePath = `events/${fileName}`
-        const fileType = 'image/webp'
-
-        const res = await fetch('/api/upload/presigned-url', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key: filePath, contentType: fileType }),
-        })
-        const { url, publicUrl } = await res.json()
-        if (!url) throw new Error('Không lấy được link upload')
-
-        const uploadRes = await fetch(url, {
-          method: 'PUT',
-          headers: { 'Content-Type': fileType },
-          body: posterFile,
-        })
-        if (!uploadRes.ok) throw new Error('Upload ảnh thất bại')
-
-        poster_url = publicUrl
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('Bạn cần đăng nhập để đăng sự kiện.')
       }
 
+      const title = formData.get('title') as string
+      
       const eventData = {
-        name: formData.get('name'),
+        title: title,
+        slug: generateSlug(title),
         description: formData.get('description'),
-        venue: formData.get('venue'),
-        city: formData.get('city'),
+        location: formData.get('location'),
+        province: formData.get('province'),
         start_date: formData.get('start_date'),
         end_date: formData.get('end_date'),
         source_url: formData.get('source_url'),
-        poster_url
+        ticket_price: formData.get('ticket_price'),
+        is_crawled: false,
+        status: 'PENDING'
       }
 
-      const res = await fetch('/api/events/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(eventData),
-      })
-      
-      const result = await res.json()
-      if (!res.ok) throw new Error(result.error)
+      const { error } = await supabase.from('events').insert(eventData)
+      if (error) {
+        if (error.code === '23505') {
+          throw new Error('Sự kiện này đã tồn tại trên hệ thống (Trùng tên và ngày bắt đầu).')
+        }
+        throw error
+      }
 
-      toast.success('Đã gửi sự kiện thành công! Chờ ban quản trị duyệt.')
-      router.push('/events')
+      setSuccessMsg('Đã gửi sự kiện thành công! Chờ ban quản trị duyệt.')
+      setTimeout(() => {
+        router.push('/events')
+      }, 2000)
     } catch (error: any) {
-      toast.error('Lỗi khi gửi sự kiện: ' + error.message)
+      setErrorMsg(error.message || 'Lỗi khi gửi sự kiện')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-black text-slate-900 mb-2">Đóng góp sự kiện</h1>
-      <p className="text-slate-500 mb-8">Biết một lễ hội hay sự kiện Cosplay sắp diễn ra? Hãy đăng lên đây để cộng đồng cùng biết nhé. (Sự kiện cần chờ admin duyệt).</p>
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <Link href="/events" className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-medium mb-6 transition">
+        <ArrowLeft className="w-4 h-4" /> Quay lại danh sách sự kiện
+      </Link>
+      
+      <h1 className="text-3xl font-black text-slate-900 mb-2">Đăng thông tin Sự kiện / Festival</h1>
+      <p className="text-slate-500 mb-8">Chia sẻ sự kiện Cosplay sắp diễn ra với cộng đồng. Sự kiện sẽ được admin duyệt trước khi hiển thị công khai.</p>
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-        {/* Poster Image */}
-        <div>
-          <label className="text-sm font-bold text-slate-700 block mb-1.5">Ảnh Poster Sự Kiện</label>
-          <div className="flex flex-col gap-3">
-            {posterPreview ? (
-              <div className="relative w-full max-w-sm rounded-xl overflow-hidden border border-slate-200">
-                <img src={posterPreview} alt="Poster preview" className="w-full h-auto object-cover" />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPosterFile(null)
-                    setPosterPreview(null)
-                  }}
-                  className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 text-white rounded-full transition"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <label className="w-full max-w-sm h-48 border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition group">
-                <ImagePlus className="w-8 h-8 text-slate-400 group-hover:text-brand-500 mb-2" />
-                <span className="text-sm font-medium text-slate-600 group-hover:text-brand-600">Thêm ảnh poster</span>
-                <span className="text-xs text-slate-400 mt-1">Tự động nén WebP (Max 1MB)</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0]
-                    if (f) handleFilePreview(f)
-                  }}
-                />
-              </label>
-            )}
+      {errorMsg && (
+        <div className="bg-rose-50 text-rose-600 p-4 rounded-xl font-bold mb-6 border border-rose-100">
+          {errorMsg}
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl font-bold mb-6 border border-emerald-100">
+          {successMsg}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-slate-900">Tên sự kiện / Festival <span className="text-rose-500">*</span></label>
+          <input type="text" name="title" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="VD: Natsu Matsuri 2026" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-900">Ngày bắt đầu <span className="text-rose-500">*</span></label>
+            <input type="datetime-local" name="start_date" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-900">Ngày kết thúc <span className="text-rose-500">*</span></label>
+            <input type="datetime-local" name="end_date" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
         </div>
 
-        <div>
-          <label className="text-sm font-bold text-slate-700 block mb-1.5">Tên sự kiện / Festival <span className="text-rose-500">*</span></label>
-          <input required name="name" type="text" placeholder="VD: Natsu Matsuri 2026" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-500 outline-none" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-bold text-slate-700 block mb-1.5">Ngày bắt đầu <span className="text-rose-500">*</span></label>
-            <input required name="start_date" type="date" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-500 outline-none" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-900">Địa điểm tổ chức <span className="text-rose-500">*</span></label>
+            <input type="text" name="location" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="VD: Nhà thi đấu Phú Thọ" />
           </div>
-          <div>
-            <label className="text-sm font-bold text-slate-700 block mb-1.5">Ngày kết thúc <span className="text-rose-500">*</span></label>
-            <input required name="end_date" type="date" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-500 outline-none" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-bold text-slate-700 block mb-1.5">Địa điểm tổ chức</label>
-            <input name="venue" type="text" placeholder="VD: Nhà thi đấu Phú Thọ" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-500 outline-none" />
-          </div>
-          <div>
-            <label className="text-sm font-bold text-slate-700 block mb-1.5">Tỉnh / Thành phố <span className="text-rose-500">*</span></label>
-            <select required name="city" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-500 outline-none bg-white">
-              <option value="">Chọn thành phố</option>
-              <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-900">Khu vực (Tỉnh/Thành) <span className="text-rose-500">*</span></label>
+            <select name="province" required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
               <option value="Hà Nội">Hà Nội</option>
+              <option value="TP. HCM">TP. HCM</option>
               <option value="Đà Nẵng">Đà Nẵng</option>
               <option value="Khác">Khác</option>
             </select>
           </div>
         </div>
 
-        <div>
-          <label className="text-sm font-bold text-slate-700 block mb-1.5">Link nguồn (Facebook Post, Fanpage, Website)</label>
-          <input name="source_url" type="url" placeholder="https://..." className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-500 outline-none" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-900">Giá vé (Nếu có)</label>
+            <input type="text" name="ticket_price" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="VD: 150.000đ hoặc Miễn phí" />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-slate-900">Link nguồn / Bài viết BTC</label>
+            <input type="url" name="source_url" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="https://facebook.com/..." />
+          </div>
         </div>
 
-        <div>
-          <label className="text-sm font-bold text-slate-700 block mb-1.5">Mô tả ngắn</label>
-          <textarea name="description" rows={4} placeholder="Giá vé, khách mời, hoạt động chính..." className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-brand-500 outline-none resize-none"></textarea>
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-slate-900">Mô tả chi tiết sự kiện</label>
+          <textarea name="description" rows={5} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="Thông tin về khách mời, hoạt động, cuộc thi..."></textarea>
         </div>
 
-        <div className="pt-4">
-          <Button disabled={loading} type="submit" className="w-full h-12 text-base font-bold rounded-xl bg-brand-600 hover:bg-brand-700 text-white shadow-md shadow-brand-600/20">
-            {loading && <Loader2 className="w-5 h-5 mr-2 animate-spin" />}
-            Gửi yêu cầu phê duyệt
-          </Button>
-        </div>
+        <button type="submit" disabled={loading} className="w-full bg-indigo-600 text-white font-black py-4 rounded-xl hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">
+          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Gửi Yêu Cầu Đăng Sự Kiện'}
+        </button>
       </form>
     </div>
   )
