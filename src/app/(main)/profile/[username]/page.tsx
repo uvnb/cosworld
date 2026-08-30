@@ -86,12 +86,32 @@ export default async function ProfilePage({
                 
                 {/* Name & Badge */}
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <h1 className="text-2xl font-black text-slate-900">
                       {profile?.full_name || profile?.username || 'Chưa cập nhật'}
                     </h1>
                     {profile?.is_verified && <CheckCircle2 className="w-5 h-5 text-blue-500" />}
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-bold rounded">Admin</span>
+                    
+                    {profile?.roles?.map((role: string) => {
+                      if (role === 'user') return null; // Don't show basic user role badge
+                      
+                      const badgeColors: Record<string, string> = {
+                        admin: 'bg-rose-50 text-rose-600',
+                        coser: 'bg-fuchsia-50 text-fuchsia-600',
+                        photographer: 'bg-blue-50 text-blue-600',
+                        staff: 'bg-amber-50 text-amber-600'
+                      };
+                      
+                      const defaultColor = 'bg-slate-100 text-slate-600';
+                      const colorClass = badgeColors[role.toLowerCase()] || defaultColor;
+                      
+                      return (
+                        <span key={role} className={`px-2 py-0.5 text-xs font-bold rounded uppercase ${colorClass}`}>
+                          {role}
+                        </span>
+                      );
+                    })}
+
                     <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-600 text-sm font-bold rounded-full border border-rose-100 ml-2">
                       <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
                       <span>{repScore}</span>

@@ -218,6 +218,27 @@ export function EditProfileDialog({ profile, email, triggerType = 'edit' }: Edit
                 <Label htmlFor="city" className="font-bold">Địa chỉ (Thành phố)</Label>
                 <Input id="city" name="city" defaultValue={profile?.city || ''} placeholder="VD: Hà Nội, TP.HCM..." className="rounded-xl bg-slate-50 border-slate-200" />
               </div>
+              
+              <div className="space-y-3 pt-2">
+                <Label className="font-bold">Vai trò (Role) của bạn</Label>
+                <p className="text-xs text-slate-500 -mt-1">Chọn một hoặc nhiều vai trò để hiển thị trên profile.</p>
+                <div className="flex flex-wrap gap-2">
+                  {['coser', 'photographer', 'staff'].map((role) => (
+                    <label key={role} className="cursor-pointer relative">
+                      <input 
+                        type="checkbox" 
+                        name="roles" 
+                        value={role} 
+                        defaultChecked={profile?.roles?.includes(role)}
+                        className="peer sr-only"
+                      />
+                      <div className="px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 peer-checked:bg-indigo-600 peer-checked:text-white transition">
+                        {role === 'coser' ? 'Cosplayer' : role === 'photographer' ? 'Photographer' : 'Staff / Hỗ trợ'}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="bio" className="font-bold">Tiểu sử</Label>
                 <Textarea id="bio" name="bio" defaultValue={profile?.bio || ''} rows={3} placeholder="Giới thiệu bản thân..." className="rounded-xl bg-slate-50 border-slate-200 resize-none" />

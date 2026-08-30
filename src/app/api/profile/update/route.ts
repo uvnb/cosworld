@@ -13,12 +13,13 @@ export async function POST(request: Request) {
 
     const formData = await request.formData()
 
-    const { data: profile } = await supabase.from('profiles').select('username').eq('id', user.id).single()
+    const { data: profile } = await supabase.from('profiles').select('username, roles').eq('id', user.id).single()
     const username = profile?.username
 
     const full_name = formData.get('full_name') as string
     const bio = formData.get('bio') as string
     const city = formData.get('city') as string
+    const rawRoles = formData.getAll('roles') as string[]
     const avatarFile = formData.get('avatar') as File | null
     const coverPhotoFile = formData.get('cover_photo') as File | null
 
@@ -63,10 +64,20 @@ export async function POST(request: Request) {
       cover_photo_url = publicUrl
     }
 
+    // Build roles array safely
+    const currentRoles = profile?.roles || ['user']
+    const isAdmin = currentRoles.includes('admin')
+    
+    // Filter valid roles that users can select themselves
+    let newRoles = rawRoles.filter(r => ['coser', 'photographer', 'staff'].includes(r))
+    newRoles.push('user') // Base role
+    if (isAdmin) newRoles.push('admin') // Preserve admin role
+
     const updates: Record<string, any> = {
       full_name,
       bio,
       city,
+      roles: Array.from(new Set(newRoles))
     }
 
     if (avatar_url) updates.avatar_url = avatar_url

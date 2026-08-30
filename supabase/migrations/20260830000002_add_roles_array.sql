@@ -26,3 +26,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_events_unique_source ON events(source_url)
 
 -- Chống lặp khi người dùng đăng tay (Cùng tên và cùng ngày bắt đầu thì báo lỗi)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_events_unique_title_date ON events(title, start_date);
+
+-- Cấp quyền truy cập cơ bản cho bảng profiles để sửa lỗi permission denied
+GRANT ALL ON TABLE public.profiles TO anon, authenticated, service_role;
