@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Check, X, Clock, Users } from 'lucide-react'
 import { ManageApplicationButtons } from '@/components/services/ManageApplicationButtons'
+import { DeleteRecruitmentButton } from '@/components/services/DeleteRecruitmentButton'
 
 export default async function ManageRecruitmentsPage() {
   const supabase = await createClient()
@@ -49,13 +50,16 @@ export default async function ManageRecruitmentsPage() {
           recruitments.map(rec => (
             <div key={rec.id} className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <Link href={`/services/${rec.id}`} className="hover:text-brand-600 transition">
-                    <h2 className="text-lg font-black text-slate-900">{rec.title}</h2>
-                  </Link>
-                  <p className="text-sm text-slate-500 mt-1">Trạng thái: <span className="font-bold text-slate-700">{rec.status}</span></p>
+                <div className="flex-1 flex justify-between items-start sm:items-center">
+                  <div>
+                    <Link href={`/services/${rec.id}`} className="hover:text-brand-600 transition">
+                      <h2 className="text-lg font-black text-slate-900">{rec.title}</h2>
+                    </Link>
+                    <p className="text-sm text-slate-500 mt-1">Trạng thái: <span className="font-bold text-slate-700">{rec.status}</span></p>
+                  </div>
+                  <DeleteRecruitmentButton recruitmentId={rec.id} />
                 </div>
-                <div className="text-sm font-bold text-slate-600 bg-white px-4 py-2 rounded-xl border border-slate-200">
+                <div className="text-sm font-bold text-slate-600 bg-white px-4 py-2 rounded-xl border border-slate-200 shrink-0 text-center">
                   Tổng đơn: {rec.recruitment_applications?.length || 0}
                 </div>
               </div>

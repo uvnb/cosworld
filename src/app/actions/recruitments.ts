@@ -121,3 +121,35 @@ export async function createRecruitment(formData: FormData) {
   revalidatePath('/services')
   return { success: true, id: data.id }
 }
+
+export async function deleteRecruitment(recruitmentId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Unauthorized' }
+
+  // Verify ownership
+  const { data: recruitment } = await supabase
+    .from('recruitments')
+    .select('author_id')
+    .eq('id', recruitmentId)
+    .single()
+
+  if (!recruitment || recruitment.author_id !== user.id) {
+    return { error: 'Bạn không có quyền xóa bài đăng này.' }
+  }
+
+  const { error } = await supabase
+    .from('recruitments')
+    .delete()
+    .eq('id', recruitmentId)
+
+  if (error) {
+    console.error('Delete error:', error)
+    return { error: 'Không thể xóa bài đăng.' }
+  }
+
+  revalidatePath('/services')
+  revalidatePath('/services/manage')
+  return { success: true }
+}

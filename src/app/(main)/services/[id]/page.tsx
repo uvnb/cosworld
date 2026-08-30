@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, MapPin, Calendar, DollarSign, Heart, ShieldCheck, MessageCircle } from 'lucide-react'
 import { ApplyRecruitmentForm } from '@/components/services/ApplyRecruitmentForm'
+import { DeleteRecruitmentButton } from '@/components/services/DeleteRecruitmentButton'
 
 export default async function RecruitmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
@@ -71,9 +72,16 @@ export default async function RecruitmentDetailPage({ params }: { params: Promis
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 mb-6 leading-tight">
-              {recruitment.title}
-            </h1>
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-tight">
+                {recruitment.title}
+              </h1>
+              {isOwner && (
+                <div className="bg-rose-50 rounded-xl">
+                  <DeleteRecruitmentButton recruitmentId={recruitment.id} redirectTo="/services/manage" />
+                </div>
+              )}
+            </div>
 
             <div className="flex flex-wrap gap-4 mb-8">
               <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">

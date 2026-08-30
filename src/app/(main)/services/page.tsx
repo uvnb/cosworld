@@ -127,9 +127,9 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                   : 0;
                   
                 return (
-                  <div key={rec.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:border-brand-300 transition flex flex-col justify-between group">
+                  <div key={rec.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-brand-300 transition flex flex-col justify-between group">
                     <div>
-                      <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center justify-between mb-3">
                         <div className="flex gap-2">
                           {rec.roles?.slice(0, 2).map((r: string) => (
                             <span key={r} className="px-3 py-1 bg-brand-50 text-brand-600 text-[10px] font-black uppercase rounded-full tracking-wider">
@@ -147,15 +147,15 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                         </span>
                       </div>
                       
-                      <h3 className="text-lg font-extrabold text-slate-900 mb-2 group-hover:text-brand-600 transition">
+                      <h3 className="text-base font-extrabold text-slate-900 mb-1.5 group-hover:text-brand-600 transition line-clamp-2">
                         {rec.title}
                       </h3>
                       
-                      <p className="text-sm text-slate-600 line-clamp-3 mb-5 leading-relaxed">
+                      <p className="text-sm text-slate-600 line-clamp-2 mb-4 leading-relaxed">
                         {rec.description}
                       </p>
                       
-                      <div className="flex flex-wrap gap-2 mb-6">
+                      <div className="flex flex-wrap gap-2 mb-4">
                         {rec.budget && (
                           <span className="px-2.5 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-lg flex items-center gap-1.5 border border-emerald-100">
                             💰 {rec.budget}
@@ -167,9 +167,9 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                       </div>
                     </div>
                     
-                    <div className="pt-5 border-t border-slate-100 flex items-center justify-between">
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <img src={author?.avatar_url || `https://ui-avatars.com/api/?name=${author?.username || 'User'}`} className="w-10 h-10 rounded-full border border-slate-200 bg-slate-50" alt="avatar" />
+                        <img src={author?.avatar_url || `https://ui-avatars.com/api/?name=${author?.username || 'User'}`} className="w-9 h-9 rounded-full border border-slate-200 bg-slate-50" alt="avatar" />
                         <div>
                           <p className="text-sm font-bold text-slate-900 line-clamp-1">{author?.full_name || author?.username}</p>
                           <p className="text-[10px] text-rose-500 font-bold flex items-center gap-1 mt-0.5">
@@ -178,7 +178,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                         </div>
                       </div>
                       <Link href={`/services/${rec.id}`}>
-                        <button className="px-5 py-2.5 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-xl text-sm font-bold transition">
+                        <button className="px-4 py-2 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-xl text-xs font-bold transition">
                           Ứng tuyển ngay
                         </button>
                       </Link>
