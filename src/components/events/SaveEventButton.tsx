@@ -20,10 +20,18 @@ export function SaveEventButton({ eventId, isSavedInitially, userId }: { eventId
     setLoading(true)
     if (isSaved) {
       const { error } = await supabase.from('saved_events').delete().eq('event_id', eventId).eq('user_id', userId)
-      if (!error) setIsSaved(false)
+      if (error) {
+        alert('Lỗi: ' + error.message)
+      } else {
+        setIsSaved(false)
+      }
     } else {
       const { error } = await supabase.from('saved_events').insert({ event_id: eventId, user_id: userId })
-      if (!error) setIsSaved(true)
+      if (error) {
+        alert('Lỗi: ' + error.message)
+      } else {
+        setIsSaved(true)
+      }
     }
     setLoading(false)
     router.refresh()

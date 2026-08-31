@@ -142,11 +142,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
             <div className="flex flex-col gap-3 shrink-0 w-full md:w-auto">
               <SaveEventButton eventId={event.id} isSavedInitially={isSaved} userId={user?.id} />
               
-              <a href={gcalUrl} target="_blank" rel="noreferrer">
-                <button className="w-full md:w-48 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-semibold transition flex items-center justify-center gap-2">
-                  <BookmarkPlus className="w-4 h-4 text-rose-500" /> Google Calendar
-                </button>
-              </a>
               <div className="flex gap-2">
                 {event.source_url && (
                   <a href={event.source_url} target="_blank" rel="noreferrer" className="flex-1">

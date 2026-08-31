@@ -31,18 +31,18 @@ export function MyCalendar({
 
   const events: Event[] = view === 'events' 
     ? savedEvents.map(e => ({
-        title: `[Fes] ${e.title}`,
-        start: new Date(e.start_date),
-        end: new Date(e.end_date || e.start_date),
+        title: `[Fes] ${e?.title || 'Sự kiện'}`,
+        start: e?.start_date ? new Date(e.start_date) : new Date(),
+        end: (e?.end_date || e?.start_date) ? new Date(e.end_date || e.start_date) : new Date(),
         allDay: true,
         resource: { type: 'event', ...e }
       }))
     : (view === 'owner' ? ownerBookings : renterBookings).map(b => {
-        const isPending = b.status === 'pending'
+        const isPending = b?.status === 'pending'
         return {
-          title: `${isPending ? '[Chờ duyệt] ' : ''}${b.listing.title}`,
-          start: new Date(b.start_date),
-          end: new Date(b.end_date),
+          title: `${isPending ? '[Chờ duyệt] ' : ''}${b?.listing?.title || 'Đơn thuê'}`,
+          start: b?.start_date ? new Date(b.start_date) : new Date(),
+          end: b?.end_date ? new Date(b.end_date) : new Date(),
           allDay: true,
           resource: { type: 'booking', ...b }
         }

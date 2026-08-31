@@ -25,10 +25,14 @@ export default async function CalendarPage() {
   // Lấy danh sách sự kiện đã lưu
   const { data: savedEventsData } = await supabase
     .from('saved_events')
-    .select('event:event_id(id, title, start_date, end_date)')
+    .select('event:events(id, title, start_date, end_date)')
     .eq('user_id', user.id)
 
-  const savedEvents = savedEventsData?.map(se => se.event).filter(Boolean) || []
+  const savedEvents = savedEventsData?.map(se => {
+    // Xử lý trường hợp supabase trả về mảng thay vì object
+    const evt = Array.isArray(se.event) ? se.event[0] : se.event
+    return evt
+  }).filter(Boolean) || []
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
