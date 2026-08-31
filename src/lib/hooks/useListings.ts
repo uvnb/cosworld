@@ -22,7 +22,7 @@ export function useListings(filter: ListingFilters = {}) {
       
       // Nếu có tọa độ, sử dụng hàm PostGIS
       if (filter.lat !== undefined && filter.lng !== undefined) {
-        query = supabase
+        const { data: nearby, error: rpcError } = await supabase
           .rpc('get_nearby_listings', {
             user_lat: filter.lat,
             user_lng: filter.lng,
@@ -30,11 +30,43 @@ export function useListings(filter: ListingFilters = {}) {
             filter_category: filter.category || null,
             filter_query: filter.query || null
           })
+
+        if (rpcError) throw rpcError
+
+        if (!nearby || nearby.length === 0) return []
+
+        // Phân trang trên mảng ID đã lấy được từ RPC
+        const startIndex = pageParam * 12
+        const paginatedNearby = nearby.slice(startIndex, startIndex + 12)
+        
+        if (paginatedNearby.length === 0) return []
+        
+        const ids = paginatedNearby.map((n: any) => n.id)
+
+        const { data, error } = await supabase
+          .from('listings')
           .select(`
-            id, title, price_per_day, sale_price, city, listing_type, size, created_at, distance_meters,
+            id, title, price_per_day, sale_price, city, listing_type, size, created_at,
             owner:profiles!owner_id(username, avatar_url, reputation_score),
             images:listing_images(r2_url)
           `)
+          .in('id', ids)
+
+        if (error) throw error
+
+        const enriched = (data as any[]).map(item => {
+           const n = paginatedNearby.find((n: any) => n.id === item.id)
+           return { ...item, distance_meters: n?.distance_meters }
+        })
+
+        // Sắp xếp lại theo khoảng cách vì .in() không giữ nguyên thứ tự
+        enriched.sort((a, b) => a.distance_meters - b.distance_meters)
+
+        return enriched.map(item => ({
+          ...item,
+          cover_image: item.images?.[0]?.r2_url || null,
+          owner: Array.isArray(item.owner) ? item.owner[0] : item.owner
+        }))
       } else {
         query = supabase
           .from('listings')
