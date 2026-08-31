@@ -34,6 +34,19 @@ export async function manageEvent(eventId: string, status: 'APPROVED' | 'REJECTE
     return { error: `Lỗi: ${error.message || 'Không thể cập nhật trạng thái'}` }
   }
 
+  // Lấy thông tin sự kiện để gửi thông báo
+  const { data: eventData } = await adminClient.from('events').select('title, submitted_by').eq('id', eventId).single()
+  
+  if (eventData?.submitted_by) {
+    const { createNotification } = await import('@/app/actions/notifications')
+    const actionText = status === 'APPROVED' ? 'đã được duyệt' : 'đã bị từ chối'
+    const title = `Sự kiện ${actionText}`
+    const content = `Sự kiện "${eventData.title}" của bạn ${actionText} bởi Admin.`
+    const link = status === 'APPROVED' ? `/events` : '#' // Link to events if approved
+    
+    await createNotification(eventData.submitted_by, `EVENT_${status}`, title, content, link, user.id)
+  }
+
   revalidatePath('/admin/events')
   revalidatePath('/events')
   return { success: true }

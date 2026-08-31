@@ -22,12 +22,21 @@ export default async function CalendarPage() {
     .select('*, listing:listing_id(title)')
     .eq('renter_id', user.id)
 
+  // Lấy danh sách sự kiện đã lưu
+  const { data: savedEventsData } = await supabase
+    .from('saved_events')
+    .select('event:event_id(id, title, start_date, end_date)')
+    .eq('user_id', user.id)
+
+  const savedEvents = savedEventsData?.map(se => se.event).filter(Boolean) || []
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <h1 className="text-2xl font-black text-slate-900 mb-6">Lịch Cá Nhân</h1>
       <MyCalendar 
         ownerBookings={ownerBookings || []} 
         renterBookings={renterBookings || []} 
+        savedEvents={savedEvents}
       />
     </div>
   )

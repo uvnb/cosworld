@@ -20,36 +20,52 @@ const localizer = dateFnsLocalizer({
 
 export function MyCalendar({ 
   ownerBookings, 
-  renterBookings 
+  renterBookings,
+  savedEvents = []
 }: { 
   ownerBookings: any[], 
-  renterBookings: any[] 
+  renterBookings: any[],
+  savedEvents?: any[]
 }) {
-  const [view, setView] = useState<'owner' | 'renter'>('owner')
+  const [view, setView] = useState<'owner' | 'renter' | 'events'>('events')
 
-  const events: Event[] = (view === 'owner' ? ownerBookings : renterBookings).map(b => {
-    const isPending = b.status === 'pending'
-    return {
-      title: `${isPending ? '[Chờ duyệt] ' : ''}${b.listing.title}`,
-      start: new Date(b.start_date),
-      end: new Date(b.end_date),
-      allDay: true,
-      resource: b
-    }
-  })
+  const events: Event[] = view === 'events' 
+    ? savedEvents.map(e => ({
+        title: `[Fes] ${e.title}`,
+        start: new Date(e.start_date),
+        end: new Date(e.end_date || e.start_date),
+        allDay: true,
+        resource: { type: 'event', ...e }
+      }))
+    : (view === 'owner' ? ownerBookings : renterBookings).map(b => {
+        const isPending = b.status === 'pending'
+        return {
+          title: `${isPending ? '[Chờ duyệt] ' : ''}${b.listing.title}`,
+          start: new Date(b.start_date),
+          end: new Date(b.end_date),
+          allDay: true,
+          resource: { type: 'booking', ...b }
+        }
+      })
 
   return (
     <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center gap-4 mb-6">
+        <button 
+          onClick={() => setView('events')}
+          className={`px-4 py-2 text-sm font-bold rounded-xl transition ${view === 'events' ? 'bg-fuchsia-600 text-white shadow-md shadow-fuchsia-600/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+        >
+          Lịch Sự Kiện / Fes
+        </button>
         <button 
           onClick={() => setView('owner')}
-          className={`px-4 py-2 text-sm font-bold rounded-xl transition ${view === 'owner' ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+          className={`px-4 py-2 text-sm font-bold rounded-xl transition ${view === 'owner' ? 'bg-brand-600 text-white shadow-md shadow-brand-600/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
         >
           Lịch Cho Thuê (Chủ đồ)
         </button>
         <button 
           onClick={() => setView('renter')}
-          className={`px-4 py-2 text-sm font-bold rounded-xl transition ${view === 'renter' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+          className={`px-4 py-2 text-sm font-bold rounded-xl transition ${view === 'renter' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
         >
           Lịch Đi Thuê
         </button>
@@ -65,9 +81,14 @@ export function MyCalendar({
           eventPropGetter={(event) => {
             const b = event.resource
             let backgroundColor = '#db2777' // brand-600
-            if (view === 'renter') backgroundColor = '#4f46e5' // indigo-600
-            if (b.status === 'pending') backgroundColor = '#f59e0b' // amber-500
-            if (b.status === 'cancelled') backgroundColor = '#ef4444' // red-500
+            
+            if (b.type === 'event') {
+              backgroundColor = '#c026d3' // fuchsia-600
+            } else {
+              if (view === 'renter') backgroundColor = '#4f46e5' // indigo-600
+              if (b.status === 'pending') backgroundColor = '#f59e0b' // amber-500
+              if (b.status === 'cancelled') backgroundColor = '#ef4444' // red-500
+            }
 
             return { style: { backgroundColor, borderRadius: '8px', opacity: 0.9, border: 'none', fontWeight: 'bold', fontSize: '12px' } }
           }}

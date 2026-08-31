@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, MapPin, DollarSign, ExternalLink, BookmarkPlus } f
 import { Metadata } from 'next'
 
 import { DeleteEventButton } from '@/components/admin/DeleteEventButton'
+import { SaveEventButton } from '@/components/events/SaveEventButton'
 
 // Tối ưu SEO cho trang chi tiết sự kiện
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -55,8 +56,13 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
     notFound()
   }
 
-  if (user && event.submitted_by === user.id) {
-    isOwner = true
+  let isSaved = false
+  if (user) {
+    if (event.submitted_by === user.id) {
+      isOwner = true
+    }
+    const { data: savedEvent } = await supabase.from('saved_events').select('event_id').eq('event_id', event.id).eq('user_id', user.id).maybeSingle()
+    if (savedEvent) isSaved = true
   }
 
   const startDate = new Date(event.start_date)
@@ -134,9 +140,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
             </div>
             
             <div className="flex flex-col gap-3 shrink-0 w-full md:w-auto">
+              <SaveEventButton eventId={event.id} isSavedInitially={isSaved} userId={user?.id} />
+              
               <a href={gcalUrl} target="_blank" rel="noreferrer">
-                <button className="w-full md:w-48 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">
-                  <BookmarkPlus className="w-5 h-5" /> Lưu Google Calendar
+                <button className="w-full md:w-48 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                  <BookmarkPlus className="w-4 h-4 text-rose-500" /> Google Calendar
                 </button>
               </a>
               <div className="flex gap-2">
