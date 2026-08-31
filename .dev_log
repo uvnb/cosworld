@@ -16,3 +16,4 @@
 
 ○ Compiling /events ...
  GET /events 200 in 9.0s (next.js: 6.9s, proxy.ts: 578ms, application-code: 1496ms)
+[?25h

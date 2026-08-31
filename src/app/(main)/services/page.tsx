@@ -168,7 +168,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                     </div>
                     
                     <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <Link href={`/profile/${author?.username || ''}`} className="flex items-center gap-3 hover:opacity-80 transition">
                         <img src={author?.avatar_url || `https://ui-avatars.com/api/?name=${author?.username || 'User'}`} className="w-9 h-9 rounded-full border border-slate-200 bg-slate-50" alt="avatar" />
                         <div>
                           <p className="text-sm font-bold text-slate-900 line-clamp-1">{author?.full_name || author?.username}</p>
@@ -176,7 +176,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                             ♥ {repScore} uy tín
                           </p>
                         </div>
-                      </div>
+                      </Link>
                       <Link href={`/services/${rec.id}`}>
                         <button className="px-4 py-2 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-xl text-xs font-bold transition">
                           Ứng tuyển ngay

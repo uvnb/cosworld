@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { MapPin, MessageCircle, ShieldCheck, Heart } from 'lucide-react'
 import { ListingCarousel } from '@/components/listings/ListingCarousel'
-
+import Link from 'next/link'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
@@ -131,20 +131,21 @@ export default async function ListingDetailPage({
 
           <div className="pt-6 border-t border-slate-100">
             <h3 className="font-bold text-slate-900 mb-4">Thông tin chủ đồ</h3>
-            <div className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white">
-              <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                {Array.isArray(listing.owner) ? (
-                  listing.owner[0]?.avatar_url && <img src={listing.owner[0].avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  listing.owner?.avatar_url && <img src={listing.owner.avatar_url} alt="" className="w-full h-full object-cover" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-slate-900 truncate">
-                  {Array.isArray(listing.owner) 
-                    ? (listing.owner[0]?.full_name || listing.owner[0]?.username) 
-                    : (listing.owner?.full_name || listing.owner?.username || 'Cosplayer')}
+            <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white">
+              <Link href={`/profile/${Array.isArray(listing.owner) ? listing.owner[0]?.username : listing.owner?.username || ''}`} className="flex items-center gap-4 flex-1 min-w-0 hover:opacity-80 transition">
+                <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                  {Array.isArray(listing.owner) ? (
+                    listing.owner[0]?.avatar_url && <img src={listing.owner[0].avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    listing.owner?.avatar_url && <img src={listing.owner.avatar_url} alt="" className="w-full h-full object-cover" />
+                  )}
                 </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-slate-900 truncate">
+                    {Array.isArray(listing.owner) 
+                      ? (listing.owner[0]?.full_name || listing.owner[0]?.username) 
+                      : (listing.owner?.full_name || listing.owner?.username || 'Cosplayer')}
+                  </div>
                 <div className="text-xs text-rose-500 font-bold mt-0.5 flex items-center gap-1">
                   <Heart className="w-3.5 h-3.5 fill-current" /> {
                     (() => {
@@ -155,8 +156,8 @@ export default async function ListingDetailPage({
                     })()
                   } uy tín
                 </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
+              </Link>
+              <div className="flex items-center gap-2 shrink-0 ml-4">
                 {zaloDeepLink && (
                   <a href={zaloDeepLink} target="_blank" rel="noreferrer" className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
                     <MessageCircle className="w-3.5 h-3.5" /> Zalo
