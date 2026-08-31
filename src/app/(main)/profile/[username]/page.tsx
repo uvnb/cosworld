@@ -51,7 +51,14 @@ export default async function ProfilePage({
 
   let hasLiked = false
   if (user) {
-    const { data: vote } = await supabase
+    // Sử dụng Admin Client để bypass RLS, tránh trường hợp RLS bị thiết lập sai khiến không đọc được vote cũ
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const { data: vote } = await supabaseAdmin
       .from('reputation_votes')
       .select('vote_value')
       .eq('voter_id', user.id)
