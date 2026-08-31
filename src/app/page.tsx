@@ -99,7 +99,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                     : q ? `Kết quả tìm kiếm cho "${q}"` : 'Đồ đang cho thuê nổi bật'}
                 </h2>
                 <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-                  Vị trí bảo mật Fuzzy (±500m) • PostGIS Matching (Coming soon)
+                  Tìm kiếm quanh bạn (Bán kính 10km) • Vị trí bảo mật Fuzzy (±500m)
                 </p>
               </div>
             </div>
