@@ -2,14 +2,13 @@
 
 import { useState } from 'react'
 import { Bookmark, BookmarkCheck, Loader2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { toggleSaveEventAction } from '@/app/actions/interactions'
 
 export function SaveEventButton({ eventId, isSavedInitially, userId }: { eventId: string, isSavedInitially: boolean, userId?: string }) {
   const [isSaved, setIsSaved] = useState(isSavedInitially)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   async function handleToggle() {
     if (!userId) {
@@ -19,16 +18,16 @@ export function SaveEventButton({ eventId, isSavedInitially, userId }: { eventId
 
     setLoading(true)
     if (isSaved) {
-      const { error } = await supabase.from('saved_events').delete().eq('event_id', eventId).eq('user_id', userId)
-      if (error) {
-        alert('Lỗi: ' + error.message)
+      const result = await toggleSaveEventAction(eventId, userId, isSaved)
+      if (result?.error) {
+        alert('Lỗi: ' + result.error)
       } else {
         setIsSaved(false)
       }
     } else {
-      const { error } = await supabase.from('saved_events').insert({ event_id: eventId, user_id: userId })
-      if (error) {
-        alert('Lỗi: ' + error.message)
+      const result = await toggleSaveEventAction(eventId, userId, isSaved)
+      if (result?.error) {
+        alert('Lỗi: ' + result.error)
       } else {
         setIsSaved(true)
       }

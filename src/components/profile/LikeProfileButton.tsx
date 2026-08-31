@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Heart } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { toggleLikeProfileAction } from '@/app/actions/interactions'
 
 interface LikeProfileButtonProps {
   profileId: string
@@ -17,7 +17,6 @@ export function LikeProfileButton({ profileId, userId, initialHasLiked, initialS
   const [score, setScore] = useState(initialScore)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   async function handleToggleLike() {
     if (!userId) {
@@ -36,34 +35,24 @@ export function LikeProfileButton({ profileId, userId, initialHasLiked, initialS
       // Bỏ thả tim
       setHasLiked(false)
       setScore(s => s - 1)
-      const { error } = await supabase
-        .from('reputation_votes')
-        .delete()
-        .eq('profile_id', profileId)
-        .eq('voter_id', userId)
+      const result = await toggleLikeProfileAction(profileId, userId, hasLiked)
 
-      if (error) {
+      if (result?.error) {
         setHasLiked(true)
         setScore(s => s + 1)
-        alert('Lỗi: ' + error.message)
+        alert('Lỗi: ' + result.error)
       }
     } else {
       // Thả tim
       setHasLiked(true)
       setScore(s => s + 1)
       
-      const { error } = await supabase
-        .from('reputation_votes')
-        .insert({
-          profile_id: profileId,
-          voter_id: userId,
-          vote_value: 1
-        })
+      const result = await toggleLikeProfileAction(profileId, userId, hasLiked)
 
-      if (error) {
+      if (result?.error) {
         setHasLiked(false)
         setScore(s => s - 1)
-        alert('Lỗi: ' + error.message)
+        alert('Lỗi: ' + result.error)
       }
     }
 
