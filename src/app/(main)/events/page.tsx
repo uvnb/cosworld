@@ -22,7 +22,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   }
   
   if (province) {
-    query = query.eq('province', province)
+    query = query.or(`province.ilike.%${province}%,location.ilike.%${province}%`)
   }
 
   // Time logic
@@ -111,13 +111,17 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
               </div>
 
               <div>
-                <h4 className="text-xs font-bold text-slate-700 mb-3">Khu vực</h4>
-                <select name="province" defaultValue={province} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none">
-                  <option value="">Tất cả tỉnh thành</option>
-                  <option value="Hà Nội">Hà Nội (Miền Bắc)</option>
-                  <option value="TP. HCM">TP. HCM (Miền Nam)</option>
-                  <option value="Đà Nẵng">Đà Nẵng (Miền Trung)</option>
-                </select>
+                <h4 className="text-xs font-bold text-slate-700 mb-3">Khu vực / Địa chỉ</h4>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text" 
+                    name="province"
+                    defaultValue={province}
+                    placeholder="VD: Hà Nội, Quận 1..." 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
               </div>
 
               <div>
