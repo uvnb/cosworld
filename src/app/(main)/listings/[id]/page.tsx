@@ -156,6 +156,7 @@ export default async function ListingDetailPage({
                     })()
                   } uy tín
                 </div>
+                </div>
               </Link>
               <div className="flex items-center gap-2 shrink-0 ml-4">
                 {zaloDeepLink && (
