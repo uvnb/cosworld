@@ -11,9 +11,11 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
 
   const supabase = await createClient()
 
+  const now = new Date().toISOString()
+  
   let query = supabase
     .from('events')
-    .select('*')
+    .select('*, saved_events(count)')
     .eq('status', 'APPROVED')
 
   // Search logic
@@ -26,7 +28,6 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
   }
 
   // Time logic
-  const now = new Date().toISOString()
   if (time === 'upcoming') {
     query = query.gte('start_date', now).order('start_date', { ascending: true })
   } else if (time === 'past') {
@@ -38,27 +39,60 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
 
   const { data: events } = await query
 
+  // Lấy danh sách để tìm sự kiện Hot nhất (Banner)
+  const { data: upcomingForBanner } = await supabase
+    .from('events')
+    .select('*, saved_events(count)')
+    .eq('status', 'APPROVED')
+    .gte('end_date', now)
+  
+  let hottestEvent = null
+  if (upcomingForBanner && upcomingForBanner.length > 0) {
+    hottestEvent = upcomingForBanner.reduce((prev, current) => {
+      // Supabase JS count query usually returns an array with a count property or just a single object
+      // @ts-ignore
+      const prevCount = (Array.isArray(prev.saved_events) ? prev.saved_events[0]?.count : prev.saved_events?.count) || 0
+      // @ts-ignore
+      const currentCount = (Array.isArray(current.saved_events) ? current.saved_events[0]?.count : current.saved_events?.count) || 0
+      return (currentCount > prevCount) ? current : prev
+    }, upcomingForBanner[0])
+  }
+
   return (
     <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full flex-1 space-y-8">
       
       {/* Big Hero Banner */}
       <div className="rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-indigo-900 via-indigo-800 to-fuchsia-600 p-8 sm:p-12 relative shadow-2xl">
+        {hottestEvent && (
+          <div className="absolute inset-0 opacity-20">
+            <img src={hottestEvent.banner_url || ''} className="w-full h-full object-cover mix-blend-overlay" alt="" />
+          </div>
+        )}
         <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="text-white max-w-2xl">
-            <div className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-xs font-black mb-5 border border-white/20 uppercase tracking-widest text-indigo-100">
-              Lịch Lễ Hội & Sự Kiện Cosplay Toàn Quốc
+            <div className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-xs font-black mb-5 border border-white/20 uppercase tracking-widest text-indigo-100 flex items-center gap-2 w-max">
+              🔥 Sự Kiện Đáng Chú Ý Nhất
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 leading-tight">Manga Comic Con 2026</h1>
-            <p className="text-indigo-100 text-sm sm:text-base leading-relaxed mb-6">
-              Khám phá hàng trăm sự kiện hấp dẫn, nơi kết nối cộng đồng yêu thích văn hóa 2D, game và cosplay lớn nhất Việt Nam.
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 leading-tight line-clamp-2">
+              {hottestEvent?.title || 'Manga Comic Con 2026'}
+            </h1>
+            <p className="text-indigo-100 text-sm sm:text-base leading-relaxed mb-6 line-clamp-2">
+              {hottestEvent?.description || 'Khám phá hàng trăm sự kiện hấp dẫn, nơi kết nối cộng đồng yêu thích văn hóa 2D, game và cosplay lớn nhất Việt Nam.'}
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <span className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl text-sm font-bold text-white shadow-sm flex items-center gap-2 border border-white/20">
-                <MapPin className="w-4 h-4" /> TP. HCM
+                <MapPin className="w-4 h-4" /> {hottestEvent?.province || hottestEvent?.location || 'Toàn Quốc'}
               </span>
               <span className="px-4 py-2 bg-fuchsia-500 rounded-xl text-sm font-bold text-white shadow-sm flex items-center gap-2">
-                <Calendar className="w-4 h-4" /> Sắp diễn ra
+                <Calendar className="w-4 h-4" /> {hottestEvent ? new Date(hottestEvent.start_date).toLocaleDateString('vi-VN') : 'Sắp diễn ra'}
               </span>
+              {hottestEvent && (
+                <Link href={`/events/${hottestEvent.slug || `id/${hottestEvent.id}`}`}>
+                  <span className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 rounded-xl text-sm font-bold text-white shadow-sm flex items-center gap-2 transition cursor-pointer">
+                    Xem chi tiết
+                  </span>
+                </Link>
+              )}
             </div>
           </div>
           
@@ -189,9 +223,13 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                   </div>
                   
                   <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <button className="flex-1 px-4 py-2 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-600 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2">
-                      <BookmarkPlus className="w-4 h-4" /> Lưu lịch
-                    </button>
+                    <Link href={evt.slug ? `/events/${evt.slug}` : `/events/id/${evt.id}`} className="flex-1">
+                      <button className="w-full px-4 py-2 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-500 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2">
+                        <BookmarkPlus className="w-4 h-4" /> 
+                        {/* @ts-ignore */}
+                        {((Array.isArray(evt.saved_events) ? evt.saved_events[0]?.count : evt.saved_events?.count) || 0)} Quan tâm
+                      </button>
+                    </Link>
                     {evt.source_url ? (
                       <a href={evt.source_url} target="_blank" rel="noreferrer" className="flex-1 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 border border-slate-200">
                         Nguồn <ExternalLink className="w-3.5 h-3.5" />
