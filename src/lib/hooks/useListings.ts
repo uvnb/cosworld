@@ -7,7 +7,7 @@ export type ListingFilters = {
   query?: string;
   category?: string;
   sizes?: string[];
-  listingMode?: 'all' | 'rent' | 'sale';
+  listingMode?: 'all' | 'rent' | 'sale' | 'want_to_rent' | 'want_to_buy';
   city?: string;
   lat?: number;
   lng?: number;
@@ -43,7 +43,7 @@ export function useListings(filter: ListingFilters = {}) {
         
         const ids = paginatedNearby.map((n: any) => n.id)
 
-        const { data, error } = await supabase
+        let listingsQuery = supabase
           .from('listings')
           .select(`
             id, title, price_per_day, sale_price, city, listing_type, size, created_at,
@@ -51,6 +51,16 @@ export function useListings(filter: ListingFilters = {}) {
             images:listing_images(r2_url)
           `)
           .in('id', ids)
+
+        if (filter.listingMode === 'rent') {
+          listingsQuery = listingsQuery.in('listing_type', ['rent', 'both'])
+        } else if (filter.listingMode === 'sale') {
+          listingsQuery = listingsQuery.in('listing_type', ['sale', 'both'])
+        } else if (filter.listingMode === 'want_to_rent' || filter.listingMode === 'want_to_buy') {
+          listingsQuery = listingsQuery.eq('listing_type', filter.listingMode)
+        }
+
+        const { data, error } = await listingsQuery
 
         if (error) throw error
 
@@ -89,17 +99,19 @@ export function useListings(filter: ListingFilters = {}) {
         if (filter.category) {
           query = query.eq('category', filter.category)
         }
-      }
-      if (filter.city) {
-        query = query.ilike('city', `%${filter.city}%`)
-      }
-      if (filter.sizes && filter.sizes.length > 0) {
-        query = query.in('size', filter.sizes)
-      }
-      if (filter.listingMode === 'rent') {
-        query = query.in('listing_type', ['rent', 'both'])
-      } else if (filter.listingMode === 'sale') {
-        query = query.in('listing_type', ['sale', 'both'])
+        if (filter.listingMode === 'rent') {
+          query = query.in('listing_type', ['rent', 'both'])
+        } else if (filter.listingMode === 'sale') {
+          query = query.in('listing_type', ['sale', 'both'])
+        } else if (filter.listingMode === 'want_to_rent' || filter.listingMode === 'want_to_buy') {
+          query = query.eq('listing_type', filter.listingMode)
+        }
+        if (filter.city) {
+          query = query.ilike('city', `%${filter.city}%`)
+        }
+        if (filter.sizes && filter.sizes.length > 0) {
+          query = query.in('size', filter.sizes)
+        }
       }
 
       const { data, error } = await query

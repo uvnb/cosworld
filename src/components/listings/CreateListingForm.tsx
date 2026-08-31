@@ -21,7 +21,7 @@ const formSchema = z.object({
   category: z.enum(['costume', 'wig', 'props', 'shoes', 'accessories', 'studio', 'other']),
   character_name: z.string().optional(),
   description: z.string().min(10, 'Mô tả ít nhất 10 ký tự'),
-  listing_type: z.enum(['rent', 'sale', 'both']),
+  listing_type: z.enum(['rent', 'sale', 'both', 'want_to_rent', 'want_to_buy']),
   size: z.enum(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size']),
   price_per_day: z.string().optional(),
   sale_price: z.string().optional(),
@@ -288,9 +288,11 @@ export function CreateListingForm({ userId }: { userId: string }) {
             <Select onValueChange={(val: any) => setValue('listing_type', val)} defaultValue={watch('listing_type')}>
               <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn loại hình" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="rent">Chỉ Cho Thuê</SelectItem>
-                <SelectItem value="sale">Chỉ Bán Pass</SelectItem>
-                <SelectItem value="both">Cả Thuê & Bán Pass</SelectItem>
+                <SelectItem value="rent">Có đồ - Cho Thuê</SelectItem>
+                <SelectItem value="sale">Có đồ - Bán Pass</SelectItem>
+                <SelectItem value="both">Có đồ - Cả Thuê & Bán</SelectItem>
+                <SelectItem value="want_to_rent">Không có đồ - Cần Thuê</SelectItem>
+                <SelectItem value="want_to_buy">Không có đồ - Cần Mua</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -358,9 +360,9 @@ export function CreateListingForm({ userId }: { userId: string }) {
         <h3 className="text-lg font-bold text-slate-800">Tài chính & Vận chuyển</h3>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {(listingType === 'rent' || listingType === 'both') && (
+          {(listingType === 'rent' || listingType === 'both' || listingType === 'want_to_rent') && (
             <div className="space-y-2">
-              <Label className="font-bold">Giá thuê / Ngày</Label>
+              <Label className="font-bold">{listingType === 'want_to_rent' ? 'Mức giá muốn thuê / Ngày' : 'Giá thuê / Ngày'}</Label>
               <div className="relative">
                 <Controller
                   name="price_per_day"
@@ -378,9 +380,9 @@ export function CreateListingForm({ userId }: { userId: string }) {
               </div>
             </div>
           )}
-          {(listingType === 'sale' || listingType === 'both') && (
+          {(listingType === 'sale' || listingType === 'both' || listingType === 'want_to_buy') && (
             <div className="space-y-2">
-              <Label className="font-bold">Giá bán pass</Label>
+              <Label className="font-bold">{listingType === 'want_to_buy' ? 'Mức giá muốn mua' : 'Giá bán pass'}</Label>
               <div className="relative">
                 <Controller
                   name="sale_price"

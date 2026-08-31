@@ -70,7 +70,7 @@ export function ListingsGrid({ filters }: { filters?: ListingFilters }) {
           const isRent = listing.listing_type === 'rent' || listing.listing_type === 'both'
           const displayPrice = isRent ? listing.price_per_day : listing.sale_price
           
-          return (
+              return (
             <Link href={`/listings/${listing.id}`} key={listing.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col group">
               <div className="relative aspect-square bg-slate-100 overflow-hidden">
                 {listing.cover_image ? (
@@ -83,9 +83,29 @@ export function ListingsGrid({ filters }: { filters?: ListingFilters }) {
                   <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs">No Image</div>
                 )}
                 
-                <span className={`absolute top-2 left-2 ${isRent ? 'bg-brand-600' : 'bg-indigo-600'} text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm`}>
-                  {isRent ? 'Thuê' : 'Pass lại'}
-                </span>
+                {(() => {
+                  let tagText = 'Thuê'
+                  let tagClass = 'bg-brand-600'
+                  if (listing.listing_type === 'sale') {
+                    tagText = 'Pass lại'
+                    tagClass = 'bg-indigo-600'
+                  } else if (listing.listing_type === 'both') {
+                    tagText = 'Thuê & Pass'
+                    tagClass = 'bg-violet-600'
+                  } else if (listing.listing_type === 'want_to_rent') {
+                    tagText = 'Cần thuê'
+                    tagClass = 'bg-amber-600'
+                  } else if (listing.listing_type === 'want_to_buy') {
+                    tagText = 'Cần mua'
+                    tagClass = 'bg-rose-600'
+                  }
+
+                  return (
+                    <span className={`absolute top-2 left-2 ${tagClass} text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm`}>
+                      {tagText}
+                    </span>
+                  )
+                })()}
                 
                 {listing.size && (
                   <span className="absolute bottom-2 left-2 bg-slate-900/80 backdrop-blur-sm text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">

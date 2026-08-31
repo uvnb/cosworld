@@ -51,6 +51,8 @@ export default async function ListingDetailPage({
 
   const isRent = listing.listing_type === 'rent' || listing.listing_type === 'both'
   const isSale = listing.listing_type === 'sale' || listing.listing_type === 'both'
+  const isWantToRent = listing.listing_type === 'want_to_rent'
+  const isWantToBuy = listing.listing_type === 'want_to_buy'
 
   // Sắp xếp ảnh theo display_order
   const sortedImages = listing.images
@@ -62,6 +64,19 @@ export default async function ListingDetailPage({
   const rawPhone = Array.isArray(listing.owner) ? listing.owner[0]?.phone : listing.owner?.phone
   const zaloPhone = rawPhone ? (rawPhone.startsWith('0') ? `84${rawPhone.substring(1)}` : rawPhone) : ''
   const zaloDeepLink = zaloPhone ? `https://zalo.me/${zaloPhone}` : null
+
+  let tagLabel = 'Cho Thuê'
+  let tagClass = 'bg-brand-100 text-brand-700'
+  if (listing.listing_type === 'both') tagLabel = 'Thuê & Bán'
+  else if (listing.listing_type === 'sale') { tagLabel = 'Bán Pass'; tagClass = 'bg-indigo-100 text-indigo-700' }
+  else if (listing.listing_type === 'want_to_rent') { tagLabel = 'Cần Thuê'; tagClass = 'bg-amber-100 text-amber-700' }
+  else if (listing.listing_type === 'want_to_buy') { tagLabel = 'Cần Mua'; tagClass = 'bg-rose-100 text-rose-700' }
+
+  let actionPrefix = 'Cho thuê '
+  if (listing.listing_type === 'sale') actionPrefix = 'Thanh lý '
+  else if (listing.listing_type === 'want_to_rent') actionPrefix = 'Cần thuê '
+  else if (listing.listing_type === 'want_to_buy') actionPrefix = 'Cần mua '
+  else if (listing.listing_type === 'both') actionPrefix = 'Thuê/Pass '
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -75,8 +90,8 @@ export default async function ListingDetailPage({
         <div className="space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${isRent ? 'bg-brand-100 text-brand-700' : 'bg-indigo-100 text-indigo-700'}`}>
-                {listing.listing_type === 'both' ? 'Thuê & Bán' : isRent ? 'Cho Thuê' : 'Bán Pass'}
+              <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${tagClass}`}>
+                {tagLabel}
               </span>
               {listing.category !== 'studio' && listing.size && (
                 <span className="bg-slate-100 text-slate-700 px-2.5 py-1 text-xs font-bold rounded-full">
@@ -86,21 +101,21 @@ export default async function ListingDetailPage({
             </div>
             
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
-              {isRent ? 'Cho thuê ' : 'Thanh lý '}{
+              {actionPrefix}{
                 { costume: 'Trang phục', wig: 'Tóc giả', props: 'Vũ khí / Đạo cụ', shoes: 'Giày dép', accessories: 'Phụ kiện', studio: 'Studio' }[listing.category as string] || ''
               } {listing.title} {listing.district ? `- ${listing.district}` : ''}
             </h1>
             
             <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-wrap gap-6 items-center">
-              {isRent && listing.price_per_day && (
+              {(isRent || isWantToRent) && listing.price_per_day && (
                 <div>
-                  <div className="text-sm text-slate-500 font-medium">Giá thuê</div>
+                  <div className="text-sm text-slate-500 font-medium">{isWantToRent ? 'Mức giá muốn thuê' : 'Giá thuê'}</div>
                   <div className="text-2xl font-black text-brand-600">{listing.price_per_day.toLocaleString('vi-VN')}đ<span className="text-sm font-normal text-slate-500">/ngày</span></div>
                 </div>
               )}
-              {isSale && listing.sale_price && (
+              {(isSale || isWantToBuy) && listing.sale_price && (
                 <div>
-                  <div className="text-sm text-slate-500 font-medium">Giá bán pass</div>
+                  <div className="text-sm text-slate-500 font-medium">{isWantToBuy ? 'Mức giá muốn mua' : 'Giá bán pass'}</div>
                   <div className="text-2xl font-black text-brand-600">{listing.sale_price.toLocaleString('vi-VN')}đ</div>
                 </div>
               )}
