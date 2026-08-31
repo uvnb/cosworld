@@ -50,7 +50,8 @@ export default function CreateEventPage() {
         source_url: formData.get('source_url'),
         ticket_price: formData.get('ticket_price'),
         is_crawled: false,
-        status: 'PENDING'
+        status: 'PENDING',
+        submitted_by: user.id
       }
 
       const { error } = await supabase.from('events').insert(eventData)

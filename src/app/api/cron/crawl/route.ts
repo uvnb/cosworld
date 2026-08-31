@@ -41,22 +41,31 @@ export async function GET(request: Request) {
     // Thực tế: fetch('https://api.facebook.com/v16.0/.../events')
     const crawledData = [
       {
-        title: 'Natsu Matsuri Lễ Hội Mùa Hè 2026',
-        description: 'Lễ hội văn hóa Nhật Bản kết hợp sự kiện cosplay quy mô lớn tại AEON Mall.',
-        banner_url: 'https://images.unsplash.com/photo-1628102491629-778571d893a3?auto=format&fit=crop&q=80',
-        text_content: 'Địa điểm: AEON Mall Long Biên, Hà Nội. Thời gian: 25-26/09/2026',
-        start_date: new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
-        end_date: new Date(new Date().getTime() + 11 * 24 * 60 * 60 * 1000).toISOString(),
-        source_url: 'https://facebook.com/events/123456789'
-      },
-      {
-        title: 'Hobby Horizon Expo - HCM',
-        description: 'Triển lãm Hobby lớn nhất Nam bộ, sân chơi của figure, boardgame và cosplay.',
+        title: 'Lễ hội Manga Comic Con Vietnam (Mẫu 1)',
+        description: 'Sự kiện giao lưu văn hóa cosplay, anime, comic lớn nhất trong năm.',
         banner_url: 'https://images.unsplash.com/photo-1574516709848-1f6305aabaf5?auto=format&fit=crop&q=80',
         text_content: 'Địa điểm: SECC, Quận 7, TP. HCM',
+        start_date: new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+        end_date: new Date(new Date().getTime() + 11 * 24 * 60 * 60 * 1000).toISOString(),
+        source_url: 'https://www.facebook.com/share/g/19TG16ACDN/?mibextid=wwXIfr'
+      },
+      {
+        title: 'Natsu Matsuri - Lễ hội mùa hè (Mẫu 2)',
+        description: 'Lễ hội văn hóa Nhật Bản kết hợp sự kiện cosplay quy mô lớn.',
+        banner_url: 'https://images.unsplash.com/photo-1628102491629-778571d893a3?auto=format&fit=crop&q=80',
+        text_content: 'Địa điểm: AEON Mall Long Biên, Hà Nội. Thời gian: 25-26/09/2026',
         start_date: new Date(new Date().getTime() + 20 * 24 * 60 * 60 * 1000).toISOString(),
         end_date: new Date(new Date().getTime() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-        source_url: 'https://facebook.com/events/987654321'
+        source_url: 'https://www.facebook.com/share/g/1Hp2iuQ8z9/?mibextid=wwXIfr'
+      },
+      {
+        title: 'Cosplay Festival - Cần Thơ (Mẫu 3)',
+        description: 'Sự kiện offline cho cộng đồng Coser miền Tây.',
+        banner_url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80',
+        text_content: 'Địa điểm: Sense City Cần Thơ',
+        start_date: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        end_date: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        source_url: 'https://www.facebook.com/share/g/184cCacXee/?mibextid=wwXIfr'
       }
     ]
 

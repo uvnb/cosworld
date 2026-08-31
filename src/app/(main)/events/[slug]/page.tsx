@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { ArrowLeft, Calendar, MapPin, DollarSign, ExternalLink, BookmarkPlus } from 'lucide-react'
 import { Metadata } from 'next'
 
+import { DeleteEventButton } from '@/components/admin/DeleteEventButton'
+
 // Tối ưu SEO cho trang chi tiết sự kiện
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params
@@ -29,6 +31,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
   const resolvedParams = await params
   const supabase = await createClient()
 
+  // Check if admin or owner
+  const { data: { user } } = await supabase.auth.getUser()
+  let isAdmin = false
+  let isOwner = false
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('roles').eq('id', user.id).single()
+    if (profile?.roles?.includes('admin')) isAdmin = true
+  }
+
   // Cho phép lookup bằng ID nếu link dạng /events/id/[id] hoặc slug
   let query = supabase.from('events').select('*')
   if (resolvedParams.slug.length === 36 && resolvedParams.slug.includes('-')) {
@@ -42,6 +53,10 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
 
   if (error || !event) {
     notFound()
+  }
+
+  if (user && event.submitted_by === user.id) {
+    isOwner = true
   }
 
   const startDate = new Date(event.start_date)
@@ -124,13 +139,16 @@ export default async function EventDetailPage({ params }: { params: Promise<{ sl
                   <BookmarkPlus className="w-5 h-5" /> Lưu Google Calendar
                 </button>
               </a>
-              {event.source_url && (
-                <a href={event.source_url} target="_blank" rel="noreferrer">
-                  <button className="w-full md:w-48 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition flex items-center justify-center gap-2">
-                    Xem tại trang gốc <ExternalLink className="w-4 h-4" />
-                  </button>
-                </a>
-              )}
+              <div className="flex gap-2">
+                {event.source_url && (
+                  <a href={event.source_url} target="_blank" rel="noreferrer" className="flex-1">
+                    <button className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition flex items-center justify-center gap-2">
+                      Trang gốc <ExternalLink className="w-4 h-4" />
+                    </button>
+                  </a>
+                )}
+                {(isAdmin || isOwner) && <DeleteEventButton eventId={event.id} />}
+              </div>
             </div>
           </div>
 
