@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Heart, MessageSquare, Link2, MapPin, CheckCircle2 } from 'lucide-react'
 import { EditProfileDialog } from '@/components/profile/EditProfileDialog'
 import { ProfileTabs } from '@/components/profile/ProfileTabs'
+import { LikeProfileButton } from '@/components/profile/LikeProfileButton'
 
 export default async function ProfilePage({
   params
@@ -47,6 +48,17 @@ export default async function ProfilePage({
     .select('*, reviewer:reviewer_id(username, avatar_url)')
     .eq('reviewee_id', profile.id)
     .eq('is_published', true)
+
+  let hasLiked = false
+  if (user) {
+    const { data: vote } = await supabase
+      .from('reputation_votes')
+      .select('vote_value')
+      .eq('voter_id', user.id)
+      .eq('profile_id', profile.id)
+      .maybeSingle()
+    if (vote && vote.vote_value > 0) hasLiked = true
+  }
 
   const repScore = profile?.reputation_score !== undefined && profile?.reputation_score !== null 
     ? Math.floor(profile.reputation_score)
@@ -112,10 +124,12 @@ export default async function ProfilePage({
                       );
                     })}
 
-                    <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-600 text-sm font-bold rounded-full border border-rose-100 ml-2">
-                      <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
-                      <span>{repScore}</span>
-                    </div>
+                    <LikeProfileButton 
+                      profileId={profile.id}
+                      userId={user?.id}
+                      initialHasLiked={hasLiked}
+                      initialScore={repScore}
+                    />
                   </div>
                   
                   <p className="text-slate-500 text-sm">
