@@ -9,28 +9,54 @@ export type ListingFilters = {
   sizes?: string[];
   listingMode?: 'all' | 'rent' | 'sale';
   city?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export function useListings(filter: ListingFilters = {}) {
   return useInfiniteQuery({
     queryKey: ['listings', filter],
     queryFn: async ({ pageParam = 0 }) => {
-      let query = supabase
-        .from('listings')
-        .select(`
-          id, title, price_per_day, sale_price, city, listing_type, size, created_at,
-          owner:owner_id(username, avatar_url, reputation_score),
-          images:listing_images(r2_url)
-        `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .range(pageParam * 12, (pageParam + 1) * 12 - 1)
-
-      if (filter.query) {
-        query = query.ilike('title', `%${filter.query}%`)
+      
+      let query;
+      
+      // Nếu có tọa độ, sử dụng hàm PostGIS
+      if (filter.lat !== undefined && filter.lng !== undefined) {
+        query = supabase
+          .rpc('get_nearby_listings', {
+            user_lat: filter.lat,
+            user_lng: filter.lng,
+            radius_meters: 10000, // 10km mặc định
+            filter_category: filter.category || null,
+            filter_query: filter.query || null
+          })
+          .select(`
+            id, title, price_per_day, sale_price, city, listing_type, size, created_at, distance_meters,
+            owner:profiles!owner_id(username, avatar_url, reputation_score),
+            images:listing_images(r2_url)
+          `)
+      } else {
+        query = supabase
+          .from('listings')
+          .select(`
+            id, title, price_per_day, sale_price, city, listing_type, size, created_at,
+            owner:profiles!owner_id(username, avatar_url, reputation_score),
+            images:listing_images(r2_url)
+          `)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
       }
-      if (filter.category) {
-        query = query.eq('category', filter.category)
+
+      query = query.range(pageParam * 12, (pageParam + 1) * 12 - 1)
+
+      // Các bộ lọc cơ bản (chỉ áp dụng cho query thường vì RPC đã tự lọc query và category)
+      if (!filter.lat || !filter.lng) {
+        if (filter.query) {
+          query = query.ilike('title', `%${filter.query}%`)
+        }
+        if (filter.category) {
+          query = query.eq('category', filter.category)
+        }
       }
       if (filter.city) {
         query = query.ilike('city', `%${filter.city}%`)
@@ -48,8 +74,10 @@ export function useListings(filter: ListingFilters = {}) {
       
       if (error) throw error
 
+      const listings = (data as any[]) || []
+
       // Post-process to just get cover image
-      return data.map(item => ({
+      return listings.map(item => ({
         ...item,
         cover_image: item.images?.[0]?.r2_url || null,
         owner: Array.isArray(item.owner) ? item.owner[0] : item.owner

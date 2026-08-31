@@ -18,7 +18,29 @@ function timeAgo(dateString: string) {
   return `${Math.floor(diffInSeconds / 86400)} ngày trước`
 }
 
+import { useState, useEffect } from 'react'
 export function ListingsGrid({ filters }: { filters?: ListingFilters }) {
+  const [coords, setCoords] = useState<{ lat: number, lng: number } | null>(null)
+
+  useEffect(() => {
+    // Only attempt to get location if not filtering by city
+    if (!filters?.city && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCoords({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          })
+        },
+        (error) => {
+          console.warn('Geolocation error:', error)
+        }
+      )
+    }
+  }, [filters?.city])
+
+  const effectiveFilters = { ...filters, ...coords }
+
   const {
     data,
     error,
@@ -26,7 +48,7 @@ export function ListingsGrid({ filters }: { filters?: ListingFilters }) {
     hasNextPage,
     isFetchingNextPage,
     status,
-  } = useListings(filters || {})
+  } = useListings(effectiveFilters)
 
   if (status === 'pending') return <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>
   if (status === 'error') return <div className="py-20 text-center text-rose-500">Đã có lỗi xảy ra: {(error as Error).message}</div>
@@ -94,7 +116,13 @@ export function ListingsGrid({ filters }: { filters?: ListingFilters }) {
                 </div>
                 
                 <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100">
-                  <span className="flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" /> {listing.city}</span>
+                  {listing.distance_meters !== undefined ? (
+                    <span className="flex items-center gap-0.5 text-brand-600 font-medium">
+                      <MapPin className="w-2.5 h-2.5" /> Cách ~{Math.ceil(listing.distance_meters / 500) * 0.5}km
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" /> {listing.city}</span>
+                  )}
                   <span>{timeAgo(listing.created_at)}</span>
                 </div>
               </div>
