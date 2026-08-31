@@ -28,32 +28,24 @@ export function LikeProfileButton({ profileId, userId, initialHasLiked, initialS
       alert('Bạn không thể tự thả tim cho chính mình!')
       return
     }
+    
+    // Nếu đã tim rồi thì không cho tim (hoặc huỷ) nữa
+    if (hasLiked) {
+      return
+    }
 
     setLoading(true)
 
-    if (hasLiked) {
-      // Bỏ thả tim
+    // Thả tim
+    setHasLiked(true)
+    setScore(s => s + 1)
+    
+    const result = await toggleLikeProfileAction(profileId, userId, false)
+
+    if (result?.error) {
       setHasLiked(false)
       setScore(s => s - 1)
-      const result = await toggleLikeProfileAction(profileId, userId, hasLiked)
-
-      if (result?.error) {
-        setHasLiked(true)
-        setScore(s => s + 1)
-        alert('Lỗi: ' + result.error)
-      }
-    } else {
-      // Thả tim
-      setHasLiked(true)
-      setScore(s => s + 1)
-      
-      const result = await toggleLikeProfileAction(profileId, userId, hasLiked)
-
-      if (result?.error) {
-        setHasLiked(false)
-        setScore(s => s - 1)
-        alert('Lỗi: ' + result.error)
-      }
+      alert('Lỗi: ' + result.error)
     }
 
     setLoading(false)
@@ -62,11 +54,11 @@ export function LikeProfileButton({ profileId, userId, initialHasLiked, initialS
   return (
     <button 
       onClick={handleToggleLike}
-      disabled={loading}
-      className={`flex items-center gap-1.5 px-3 py-1 text-sm font-bold rounded-full border transition hover:scale-105 ml-2 cursor-pointer
+      disabled={loading || hasLiked}
+      className={`flex items-center gap-1.5 px-3 py-1 text-sm font-bold rounded-full border transition ml-2
         ${hasLiked 
-          ? 'bg-rose-50 text-rose-600 border-rose-200' 
-          : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-rose-50 hover:text-rose-500'
+          ? 'bg-rose-50 text-rose-600 border-rose-200 cursor-default' 
+          : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-rose-50 hover:text-rose-500 cursor-pointer hover:scale-105'
         }`}
     >
       <Heart className={`w-4 h-4 transition ${hasLiked ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />
