@@ -34,7 +34,6 @@ export function SaveEventButton({ eventId, isSavedInitially, userId }: { eventId
       }
     }
     setLoading(false)
-    router.refresh()
   }
 
   return (

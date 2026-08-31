@@ -57,7 +57,7 @@ export default function CreateEventPage() {
       const { error } = await supabase.from('events').insert(eventData)
       if (error) {
         if (error.code === '23505') {
-          throw new Error('Sự kiện này đã tồn tại trên hệ thống (Trùng tên và ngày bắt đầu).')
+          throw new Error('Sự kiện này đã được đăng (có thể đang chờ quản trị viên duyệt). Vui lòng không đăng trùng lặp!')
         }
         throw error
       }

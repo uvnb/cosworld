@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Calendar, dateFnsLocalizer, Event } from 'react-big-calendar'
 import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { vi } from 'date-fns/locale/vi'
+import { Calendar as CalendarIcon } from 'lucide-react'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 const locales = {
@@ -78,6 +79,14 @@ export function MyCalendar({
           startAccessor="start"
           endAccessor="end"
           culture="vi"
+          components={{
+            event: (props) => (
+              <div className="flex items-center gap-1.5 px-1 overflow-hidden h-full">
+                {props.event.resource?.type === 'event' && <CalendarIcon className="w-3.5 h-3.5 shrink-0" />}
+                <span className="truncate">{props.title}</span>
+              </div>
+            )
+          }}
           eventPropGetter={(event) => {
             const b = event.resource
             let backgroundColor = '#db2777' // brand-600
@@ -90,7 +99,7 @@ export function MyCalendar({
               if (b.status === 'cancelled') backgroundColor = '#ef4444' // red-500
             }
 
-            return { style: { backgroundColor, borderRadius: '8px', opacity: 0.9, border: 'none', fontWeight: 'bold', fontSize: '12px' } }
+            return { style: { backgroundColor, borderRadius: '6px', opacity: 1, border: 'none', fontWeight: '600', fontSize: '13px', padding: '2px 4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', color: 'white' } }
           }}
           messages={{
             next: "Tiếp",
@@ -98,7 +107,8 @@ export function MyCalendar({
             today: "Hôm nay",
             month: "Tháng",
             week: "Tuần",
-            day: "Ngày"
+            day: "Ngày",
+            agenda: "Lịch trình"
           }}
         />
       </div>
