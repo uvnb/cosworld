@@ -202,6 +202,7 @@ export default async function ListingDetailPage({
             salePrice={listing.sale_price}
             depositAmount={listing.deposit_amount}
             isLoggedIn={!!user}
+            isOwner={user?.id === (ownerObj?.id || listing.owner_id)}
           />
         </div>
       </div>

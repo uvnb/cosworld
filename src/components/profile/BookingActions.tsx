@@ -6,14 +6,17 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, XCircle } from 'lucide-react'
+import { CreateReviewDialog } from '@/components/profile/CreateReviewDialog'
 
 interface BookingActionsProps {
   bookingId: string
+  listingId: string
+  revieweeId: string
   status: string
   isOwner: boolean
 }
 
-export function BookingActions({ bookingId, status, isOwner }: BookingActionsProps) {
+export function BookingActions({ bookingId, listingId, revieweeId, status, isOwner }: BookingActionsProps) {
   const [isLoading, setIsLoading] = useState(false)
   const supabase = createClient()
   const router = useRouter()
@@ -27,6 +30,14 @@ export function BookingActions({ bookingId, status, isOwner }: BookingActionsPro
         .eq('id', bookingId)
 
       if (error) throw error
+
+      if (newStatus === 'completed' && isOwner) {
+        if (window.confirm('Giao dịch đã hoàn thành! Bạn có muốn ẨN bài đăng này để không nhận thêm yêu cầu mới không?\n(Chọn OK để Ẩn, Hủy để Giữ nguyên bài đăng)')) {
+          await supabase.from('listings').update({ status: 'hidden' }).eq('id', listingId)
+          toast.success('Đã ẩn bài đăng thành công!')
+        }
+      }
+
       toast.success('Cập nhật trạng thái thành công')
       router.refresh()
     } catch (error: any) {
@@ -78,15 +89,7 @@ export function BookingActions({ bookingId, status, isOwner }: BookingActionsPro
   if (status === 'completed' && !isOwner) {
     return (
       <div className="flex items-center gap-2 mt-3 sm:mt-2 justify-end">
-        <Button 
-          size="sm" 
-          variant="outline"
-          className="text-xs h-8 rounded-lg border-brand-200 text-brand-600 hover:bg-brand-50"
-          // In a full implementation this would open the review modal
-          onClick={() => toast.success('Tính năng viết đánh giá sắp ra mắt!')}
-        >
-          Viết đánh giá
-        </Button>
+        <CreateReviewDialog bookingId={bookingId} revieweeId={revieweeId} />
       </div>
     )
   }

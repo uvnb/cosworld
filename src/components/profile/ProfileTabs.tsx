@@ -91,9 +91,13 @@ export function ProfileTabs({ listings, bookings, reviews, currentUserId }: Prof
                 return (
                   <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 gap-4">
                     <div className="flex items-center gap-4">
-                      {otherParty?.avatar_url && (
-                        <img src={otherParty.avatar_url} className="w-12 h-12 rounded-full object-cover shrink-0" alt="" />
-                      )}
+                      <Link href={`/profile/${otherParty?.username || ''}`} className="shrink-0 hover:opacity-80 transition">
+                        <img 
+                          src={otherParty?.avatar_url || `https://ui-avatars.com/api/?name=${otherParty?.username || 'U'}&background=random`} 
+                          className="w-12 h-12 rounded-full object-cover border border-slate-200 bg-white" 
+                          alt="" 
+                        />
+                      </Link>
                       <div>
                         <h4 className="font-bold text-slate-900 line-clamp-1">{booking.listings?.title}</h4>
                         <div className="text-xs text-slate-500 mt-1 flex items-center gap-2">
@@ -111,6 +115,8 @@ export function ProfileTabs({ listings, bookings, reviews, currentUserId }: Prof
                       
                       <BookingActions 
                         bookingId={booking.id} 
+                        listingId={booking.listing_id}
+                        revieweeId={booking.owner_id}
                         status={booking.status} 
                         isOwner={isOwner} 
                       />

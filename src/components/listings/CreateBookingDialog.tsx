@@ -26,6 +26,7 @@ interface CreateBookingDialogProps {
   salePrice: number | null
   depositAmount: number | null
   isLoggedIn: boolean
+  isOwner: boolean
 }
 
 export function CreateBookingDialog({
@@ -35,8 +36,11 @@ export function CreateBookingDialog({
   pricePerDay,
   salePrice,
   depositAmount,
-  isLoggedIn
+  isLoggedIn,
+  isOwner
 }: CreateBookingDialogProps) {
+  if (isOwner) return null
+
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [startDate, setStartDate] = useState('')
