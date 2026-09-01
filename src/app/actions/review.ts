@@ -45,6 +45,16 @@ export async function submitReviewAction(
       throw rError
     }
 
+    // Trigger Notification to Reviewee
+    const { createNotification } = await import('@/app/actions/notifications')
+    await createNotification(
+      revieweeId,
+      'NEW_REVIEW',
+      'Bạn nhận được đánh giá mới',
+      `Một đối tác vừa để lại đánh giá ${rating} sao cho giao dịch của bạn.`,
+      `/profile/${revieweeId}` // Link to reviewee's own profile to see the review
+    )
+
     return { success: true }
   } catch (err: any) {
     return { success: false, error: err.message || 'Lỗi hệ thống' }

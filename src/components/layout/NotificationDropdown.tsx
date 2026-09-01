@@ -10,8 +10,8 @@ interface Notification {
   id: string
   type: string
   title: string
-  content: string
-  link: string | null
+  body: string
+  reference_id: string | null
   is_read: boolean
   created_at: string
 }
@@ -145,15 +145,15 @@ export function NotificationDropdown({ userId }: { userId?: string }) {
                           {notif.title}
                         </h4>
                         <p className="text-sm text-slate-500 mt-0.5 line-clamp-2">
-                          {notif.content}
+                          {notif.body}
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-[10px] font-medium text-slate-400">
                             {formatTime(notif.created_at)}
                           </span>
-                          {notif.link && notif.link !== '#' && (
+                          {notif.reference_id && notif.reference_id !== '#' && (
                             <Link 
-                              href={notif.link}
+                              href={notif.reference_id}
                               className="text-xs font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1"
                               onClick={() => setIsOpen(false)}
                             >

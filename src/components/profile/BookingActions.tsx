@@ -33,6 +33,16 @@ export function BookingActions({ bookingId, listingId, revieweeId, status, isOwn
         
         if (error) throw error
         toast.success('Đã xóa yêu cầu giao dịch')
+        
+        // Notify Renter
+        const { createNotification } = await import('@/app/actions/notifications')
+        await createNotification(
+          revieweeId, // Reviewee is Renter here
+          'BOOKING_REJECTED',
+          'Yêu cầu bị từ chối',
+          `Yêu cầu giao dịch của bạn đã bị từ chối.`,
+          '#'
+        )
       } else {
         const { error } = await supabase
           .from('bookings')
@@ -40,6 +50,25 @@ export function BookingActions({ bookingId, listingId, revieweeId, status, isOwn
           .eq('id', bookingId)
 
         if (error) throw error
+
+        // Notify Renter
+        const { createNotification } = await import('@/app/actions/notifications')
+        let notifTitle = 'Giao dịch cập nhật'
+        let notifBody = `Giao dịch của bạn đã chuyển sang trạng thái: ${newStatus}`
+        if (newStatus === 'confirmed') {
+          notifTitle = 'Yêu cầu được chấp nhận'
+          notifBody = 'Chủ đồ đã chấp nhận yêu cầu giao dịch của bạn!'
+        } else if (newStatus === 'completed') {
+          notifTitle = 'Giao dịch hoàn tất'
+          notifBody = 'Giao dịch đã hoàn tất. Hãy để lại đánh giá nhé!'
+        }
+        await createNotification(
+          revieweeId, // Renter
+          `BOOKING_${newStatus.toUpperCase()}`,
+          notifTitle,
+          notifBody,
+          '#'
+        )
 
         if (newStatus === 'completed' && isOwner) {
           if (window.confirm('Giao dịch đã hoàn thành! Bạn có muốn ẨN bài đăng sản phẩm này trên trang "Thuê & Mua bán" để không nhận thêm yêu cầu mới không?\n(Chọn OK để Ẩn, Hủy để Giữ nguyên)')) {

@@ -120,6 +120,16 @@ export function CreateBookingDialog({
 
       if (error) throw error
 
+      // Trigger Notification to Owner
+      const { createNotification } = await import('@/app/actions/notifications')
+      await createNotification(
+        ownerId,
+        'NEW_BOOKING',
+        'Yêu cầu giao dịch mới',
+        `Bạn có một yêu cầu giao dịch mới từ khách hàng.`,
+        `/profile/${user.user_metadata?.username || user.id}` // Link tới profile khách
+      )
+
       toast.success('Đã gửi yêu cầu giao dịch! Vui lòng nhắn tin với đối tác để chốt đơn.')
       setOpen(false)
       router.refresh()

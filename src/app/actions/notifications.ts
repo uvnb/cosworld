@@ -10,17 +10,16 @@ export async function createNotification(
   title: string,
   content: string,
   link: string,
-  actorId?: string
+  actorId?: string // We can't save actorId without altering DB, but we keep it in args to avoid breaking old calls
 ) {
   const adminClient = createAdminClient()
   
   const { error } = await adminClient.from('notifications').insert({
     user_id: userId,
-    actor_id: actorId,
     type,
     title,
-    content,
-    link
+    body: content,
+    reference_id: link
   })
 
   if (error) {

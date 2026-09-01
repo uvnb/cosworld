@@ -29,6 +29,19 @@ export async function applyForRecruitment(recruitmentId: string, appliedRole: st
     return { error: 'Có lỗi xảy ra khi gửi ứng tuyển.' }
   }
 
+  // Notify Author
+  const { data: recruitment } = await supabase.from('recruitments').select('author_id, title').eq('id', recruitmentId).single()
+  if (recruitment) {
+    const { createNotification } = await import('@/app/actions/notifications')
+    await createNotification(
+      recruitment.author_id,
+      'NEW_APPLICATION',
+      'Có người ứng tuyển mới',
+      `Bạn có một ứng viên mới cho vị trí "${appliedRole}" trong nhóm "${recruitment.title}".`,
+      `/services/manage` // Link to manage applications
+    )
+  }
+
   revalidatePath(`/services/${recruitmentId}`)
   return { success: true }
 }
@@ -42,7 +55,7 @@ export async function manageApplication(applicationId: string, status: 'ACCEPTED
   // Check if current user is the owner of the recruitment
   const { data: application } = await supabase
     .from('recruitment_applications')
-    .select('recruitment_id, applicant_id, applied_role, recruitments(author_id)')
+    .select('recruitment_id, applicant_id, applied_role, recruitments(title, author_id)')
     .eq('id', applicationId)
     .single()
 
@@ -77,6 +90,17 @@ export async function manageApplication(applicationId: string, status: 'ACCEPTED
         user_id: application.applicant_id
       })
   }
+
+  // Notify Applicant
+  const { createNotification } = await import('@/app/actions/notifications')
+  const statusText = status === 'ACCEPTED' ? 'chấp nhận' : 'từ chối'
+  await createNotification(
+    application.applicant_id,
+    `APPLICATION_${status}`,
+    `Kết quả ứng tuyển`,
+    `Đơn ứng tuyển của bạn vào vị trí "${application.applied_role}" cho nhóm "${recruitment.title}" đã bị ${statusText}.`,
+    `/services/${application.recruitment_id}`
+  )
 
   revalidatePath('/services/manage')
   return { success: true }
