@@ -25,14 +25,14 @@ export function BookingActions({ bookingId, listingId, revieweeId, status, isOwn
   const updateStatus = async (newStatus: string) => {
     setIsLoading(true)
     try {
-      if (newStatus === 'cancelled') {
+      if (newStatus === 'cancelled' || newStatus === 'rejected') {
         const { error } = await supabase
           .from('bookings')
-          .delete()
+          .update({ status: 'rejected' })
           .eq('id', bookingId)
         
         if (error) throw error
-        toast.success('Đã xóa yêu cầu giao dịch')
+        toast.success('Đã từ chối yêu cầu giao dịch')
         
         // Notify Renter
         const { createNotification } = await import('@/app/actions/notifications')

@@ -19,7 +19,7 @@ export function ProfileTabs({ listings, bookings: initialBookings, reviews, recr
   const [activeTab, setActiveTab] = useState<'listings' | 'bookings' | 'reviews' | 'recruitments'>('listings')
   const [localBookings, setLocalBookings] = useState(initialBookings || [])
 
-  const activeBookings = localBookings.filter((b: any) => b.status !== 'cancelled')
+  const activeBookings = localBookings.filter((b: any) => b.status !== 'cancelled' && b.status !== 'rejected')
   const avgRating = reviews?.length ? (reviews.reduce((acc: any, r: any) => acc + r.rating, 0) / reviews.length).toFixed(1) : '0.0'
 
   return (
@@ -128,11 +128,11 @@ export function ProfileTabs({ listings, bookings: initialBookings, reviews, recr
                       <BookingActions 
                         bookingId={booking.id} 
                         listingId={booking.listing_id}
-                        revieweeId={booking.owner_id}
+                        revieweeId={isOwner ? booking.renter_id : booking.owner_id}
                         status={booking.status} 
                         isOwner={isOwner} 
                         onStatusChange={(newStatus: string) => {
-                          if (newStatus === 'cancelled') {
+                          if (newStatus === 'cancelled' || newStatus === 'rejected') {
                             setLocalBookings((prev: any) => prev.filter((b: any) => b.id !== booking.id))
                           } else {
                             setLocalBookings((prev: any) => prev.map((b: any) => b.id === booking.id ? { ...b, status: newStatus } : b))
