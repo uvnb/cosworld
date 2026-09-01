@@ -66,7 +66,17 @@ export function ListingsSection({ initialQuery }: { initialQuery?: string }) {
                   })}
                 >
                   <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 text-sm font-medium">
-                    <SelectValue placeholder="Tất cả hình thức" />
+                    <SelectValue placeholder="Tất cả hình thức">
+                      {
+                        {
+                          all: 'Tất cả hình thức',
+                          rent: 'Cho thuê',
+                          sale: 'Pass lại',
+                          want_to_rent: 'Cần thuê',
+                          want_to_buy: 'Cần mua'
+                        }[filters.listingMode || 'all']
+                      }
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tất cả hình thức</SelectItem>
@@ -89,9 +99,13 @@ export function ListingsSection({ initialQuery }: { initialQuery?: string }) {
                       sizes: val === 'all' ? [] : [val]
                     })}
                   >
-                    <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 text-sm font-medium">
-                      <SelectValue placeholder="Tất cả size" />
-                    </SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 text-sm font-medium">
+                    <SelectValue placeholder="Tất cả size">
+                      {filters.sizes && filters.sizes.length > 0
+                        ? (filters.sizes[0] === 'One-size' ? 'One-size' : `Size ${filters.sizes[0]}`)
+                        : 'Tất cả size'}
+                    </SelectValue>
+                  </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả size</SelectItem>
                       {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size'].map(size => (
@@ -116,7 +130,19 @@ export function ListingsSection({ initialQuery }: { initialQuery?: string }) {
                   })}
                 >
                   <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 text-sm font-medium">
-                    <SelectValue placeholder="Tất cả danh mục" />
+                    <SelectValue placeholder="Tất cả danh mục">
+                      {
+                        {
+                          all: 'Tất cả danh mục',
+                          costume: 'Trang phục (Costume)',
+                          wig: 'Tóc giả (Wig)',
+                          props: 'Đạo cụ / Vũ khí',
+                          shoes: 'Giày dép',
+                          accessories: 'Phụ kiện',
+                          studio: 'Studio'
+                        }[filters.category || 'all'] || 'Tất cả danh mục'
+                      }
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tất cả danh mục</SelectItem>
