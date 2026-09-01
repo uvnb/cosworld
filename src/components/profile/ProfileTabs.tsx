@@ -30,7 +30,7 @@ export function ProfileTabs({ listings, bookings, reviews, currentUserId }: Prof
           onClick={() => setActiveTab('bookings')}
           className={`px-6 py-4 border-b-2 font-bold text-sm flex items-center gap-2 cursor-pointer shrink-0 transition ${activeTab === 'bookings' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
         >
-          <ShoppingBag className="w-4 h-4" /> Lịch sử giao dịch ({bookings?.length || 0})
+          <ShoppingBag className="w-4 h-4" /> Lịch sử giao dịch ({bookings?.filter(b => b.status !== 'cancelled').length || 0})
         </button>
         <button 
           onClick={() => setActiveTab('reviews')}
@@ -80,10 +80,10 @@ export function ProfileTabs({ listings, bookings, reviews, currentUserId }: Prof
         {/* Bookings Tab */}
         {activeTab === 'bookings' && (
           <div className="space-y-4">
-            {!bookings?.length ? (
+            {!(bookings?.filter(b => b.status !== 'cancelled').length) ? (
               <p className="text-slate-500 text-sm">Bạn chưa có lịch sử giao dịch nào.</p>
             ) : (
-              bookings.map(booking => {
+              bookings.filter(b => b.status !== 'cancelled').map(booking => {
                 const isOwner = booking.owner_id === currentUserId
                 const isRenter = booking.renter_id === currentUserId
                 const otherParty = isOwner ? booking.renter : booking.owner
@@ -139,9 +139,16 @@ export function ProfileTabs({ listings, bookings, reviews, currentUserId }: Prof
                   <div className="flex items-center gap-3 mb-2">
                     <Link href={`/profile/${review.reviewer?.username}`} className="flex items-center gap-3 hover:opacity-80 transition">
                       <img src={review.reviewer?.avatar_url || "https://ui-avatars.com/api/?name=" + review.reviewer?.username} className="w-8 h-8 rounded-full" />
-                      <div>
-                        <p className="font-bold text-sm text-slate-900">{review.reviewer?.username}</p>
-                        <div className="flex gap-0.5">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-baseline gap-2">
+                          <p className="font-bold text-sm text-slate-900 truncate">{review.reviewer?.username}</p>
+                          {review.bookings?.listings?.title && (
+                            <span className="text-xs text-slate-500 truncate">
+                              đã đánh giá giao dịch: <span className="font-medium text-slate-700">{review.bookings.listings.title}</span>
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex gap-0.5 mt-0.5">
                           {Array.from({ length: review.rating }).map((_, i) => (
                             <Star key={i} className="w-3 h-3 fill-amber-500 text-amber-500" />
                           ))}

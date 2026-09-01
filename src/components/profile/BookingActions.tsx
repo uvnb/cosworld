@@ -24,21 +24,30 @@ export function BookingActions({ bookingId, listingId, revieweeId, status, isOwn
   const updateStatus = async (newStatus: string) => {
     setIsLoading(true)
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: newStatus })
-        .eq('id', bookingId)
+      if (newStatus === 'cancelled') {
+        const { error } = await supabase
+          .from('bookings')
+          .delete()
+          .eq('id', bookingId)
+        
+        if (error) throw error
+        toast.success('Đã xóa yêu cầu giao dịch')
+      } else {
+        const { error } = await supabase
+          .from('bookings')
+          .update({ status: newStatus })
+          .eq('id', bookingId)
 
-      if (error) throw error
+        if (error) throw error
 
-      if (newStatus === 'completed' && isOwner) {
-        if (window.confirm('Giao dịch đã hoàn thành! Bạn có muốn ẨN bài đăng này để không nhận thêm yêu cầu mới không?\n(Chọn OK để Ẩn, Hủy để Giữ nguyên bài đăng)')) {
-          await supabase.from('listings').update({ status: 'hidden' }).eq('id', listingId)
-          toast.success('Đã ẩn bài đăng thành công!')
+        if (newStatus === 'completed' && isOwner) {
+          if (window.confirm('Giao dịch đã hoàn thành! Bạn có muốn ẨN bài đăng này để không nhận thêm yêu cầu mới không?\n(Chọn OK để Ẩn, Hủy để Giữ nguyên bài đăng)')) {
+            await supabase.from('listings').update({ status: 'hidden' }).eq('id', listingId)
+            toast.success('Đã ẩn bài đăng thành công!')
+          }
         }
+        toast.success('Cập nhật trạng thái thành công')
       }
-
-      toast.success('Cập nhật trạng thái thành công')
       router.refresh()
     } catch (error: any) {
       toast.error(error.message || 'Lỗi cập nhật')

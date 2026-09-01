@@ -45,7 +45,7 @@ export default async function ProfilePage({
   // Fetch Đánh giá
   const { data: reviews } = await supabase
     .from('reviews')
-    .select('*, reviewer:reviewer_id(username, avatar_url)')
+    .select('*, reviewer:reviewer_id(username, avatar_url), bookings(listings(title))')
     .eq('reviewee_id', profile.id)
     .eq('is_published', true)
 
