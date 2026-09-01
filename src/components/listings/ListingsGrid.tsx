@@ -84,7 +84,7 @@ export function ListingsGrid({ filters }: { filters?: ListingFilters }) {
                 )}
                 
                 {(() => {
-                  let tagText = 'Thuê'
+                  let tagText = 'Cho thuê'
                   let tagClass = 'bg-brand-600'
                   if (listing.listing_type === 'sale') {
                     tagText = 'Pass lại'
