@@ -97,7 +97,14 @@ export async function POST() {
     // Delete profile
     await supabaseAdmin.from('profiles').delete().eq('id', userId)
 
-    // 4. Finally, delete the auth user using admin API
+    // 4. Clean up old Supabase storage objects (to prevent constraint error)
+    try {
+      await supabaseAdmin.rpc('cleanup_user_storage', { target_user_id: userId })
+    } catch (e) {
+      console.error('Failed to cleanup storage, continuing anyway:', e)
+    }
+
+    // 5. Finally, delete the auth user using admin API
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
     if (deleteError) {
