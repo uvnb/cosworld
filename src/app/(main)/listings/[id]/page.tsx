@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { MapPin, MessageCircle, ShieldCheck, Heart, MessageSquare } from 'lucide-react'
 import { ListingCarousel } from '@/components/listings/ListingCarousel'
+import { CreateBookingDialog } from '@/components/listings/CreateBookingDialog'
 import Link from 'next/link'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -34,6 +35,7 @@ export default async function ListingDetailPage({
 }) {
   const resolvedParams = await params
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const { data: listing, error } = await supabase
     .from('listings')
@@ -192,7 +194,15 @@ export default async function ListingDetailPage({
             </div>
           </div>
 
-          {/* Xóa khối BookingForm cũ chưa dùng đến theo yêu cầu, các thao tác liên hệ đều dồn về Thẻ Chủ Đồ */}
+          <CreateBookingDialog 
+            listingId={listing.id}
+            ownerId={ownerObj?.id || listing.owner_id}
+            listingType={listing.listing_type}
+            pricePerDay={listing.price_per_day}
+            salePrice={listing.sale_price}
+            depositAmount={listing.deposit_amount}
+            isLoggedIn={!!user}
+          />
         </div>
       </div>
     </div>

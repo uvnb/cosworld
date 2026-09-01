@@ -35,11 +35,11 @@ export default async function ProfilePage({
     .select('*, listing_images(r2_url)')
     .eq('owner_id', profile.id)
 
-  // Fetch Lịch sử thuê
+  // Fetch Lịch sử giao dịch (cả đi thuê và cho thuê)
   const { data: bookings } = await supabase
     .from('bookings')
-    .select('*, listings(title, city)')
-    .eq('renter_id', profile.id)
+    .select('*, listings(title, city), renter:renter_id(username, full_name, avatar_url), owner:owner_id(username, full_name, avatar_url)')
+    .or(`renter_id.eq.${profile.id},owner_id.eq.${profile.id}`)
     .order('created_at', { ascending: false })
 
   // Fetch Đánh giá
@@ -188,7 +188,8 @@ export default async function ProfilePage({
       <ProfileTabs 
         listings={listings || []} 
         bookings={bookings || []} 
-        reviews={reviews || []} 
+        reviews={reviews || []}
+        currentUserId={user?.id}
       />
 
     </main>

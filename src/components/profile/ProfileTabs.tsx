@@ -4,14 +4,16 @@ import { useState } from 'react'
 import { Package, ShoppingBag, Star } from 'lucide-react'
 import Link from 'next/link'
 import { ListingActions } from '@/components/listings/ListingActions'
+import { BookingActions } from '@/components/profile/BookingActions'
 
 interface ProfileTabsProps {
   listings: any[]
   bookings: any[]
   reviews: any[]
+  currentUserId?: string
 }
 
-export function ProfileTabs({ listings, bookings, reviews }: ProfileTabsProps) {
+export function ProfileTabs({ listings, bookings, reviews, currentUserId }: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState<'listings' | 'bookings' | 'reviews'>('listings')
 
   return (
@@ -28,7 +30,7 @@ export function ProfileTabs({ listings, bookings, reviews }: ProfileTabsProps) {
           onClick={() => setActiveTab('bookings')}
           className={`px-6 py-4 border-b-2 font-bold text-sm flex items-center gap-2 cursor-pointer shrink-0 transition ${activeTab === 'bookings' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
         >
-          <ShoppingBag className="w-4 h-4" /> Lịch sử thuê ({bookings?.length || 0})
+          <ShoppingBag className="w-4 h-4" /> Lịch sử giao dịch ({bookings?.length || 0})
         </button>
         <button 
           onClick={() => setActiveTab('reviews')}
@@ -79,20 +81,43 @@ export function ProfileTabs({ listings, bookings, reviews }: ProfileTabsProps) {
         {activeTab === 'bookings' && (
           <div className="space-y-4">
             {!bookings?.length ? (
-              <p className="text-slate-500 text-sm">Bạn chưa có lịch sử thuê đồ nào.</p>
+              <p className="text-slate-500 text-sm">Bạn chưa có lịch sử giao dịch nào.</p>
             ) : (
-              bookings.map(booking => (
-                <div key={booking.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <div>
-                    <h4 className="font-bold text-slate-900 line-clamp-1">{booking.listings?.title}</h4>
-                    <p className="text-xs text-slate-500 mt-1">Trạng thái: <span className="font-bold text-brand-600 uppercase">{booking.status}</span></p>
+              bookings.map(booking => {
+                const isOwner = booking.owner_id === currentUserId
+                const isRenter = booking.renter_id === currentUserId
+                const otherParty = isOwner ? booking.renter : booking.owner
+                
+                return (
+                  <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 gap-4">
+                    <div className="flex items-center gap-4">
+                      {otherParty?.avatar_url && (
+                        <img src={otherParty.avatar_url} className="w-12 h-12 rounded-full object-cover shrink-0" alt="" />
+                      )}
+                      <div>
+                        <h4 className="font-bold text-slate-900 line-clamp-1">{booking.listings?.title}</h4>
+                        <div className="text-xs text-slate-500 mt-1 flex items-center gap-2">
+                          <span>{isOwner ? 'Người thuê/mua: ' : 'Chủ đồ: '} <span className="font-bold text-slate-700">{otherParty?.full_name || otherParty?.username}</span></span>
+                          <span>•</span>
+                          <span>Trạng thái: <span className={`font-bold uppercase ${booking.status === 'pending' ? 'text-amber-500' : 'text-brand-600'}`}>{booking.status}</span></span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-left sm:text-right">
+                      <p className="text-sm font-bold text-slate-900">{booking.total_amount?.toLocaleString('vi-VN')}đ</p>
+                      {booking.start_date !== booking.end_date && (
+                        <p className="text-xs text-slate-400 mt-0.5">Từ {booking.start_date} - {booking.end_date}</p>
+                      )}
+                      
+                      <BookingActions 
+                        bookingId={booking.id} 
+                        status={booking.status} 
+                        isOwner={isOwner} 
+                      />
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-slate-900">{booking.total_price?.toLocaleString('vi-VN')}đ</p>
-                    <p className="text-xs text-slate-400">Từ {booking.start_date.split('T')[0]} - {booking.end_date.split('T')[0]}</p>
-                  </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         )}
