@@ -15,7 +15,7 @@ export default async function RecruitmentDetailPage({ params }: { params: Promis
     .from('recruitments')
     .select(`
       *,
-      author:author_id(username, full_name, avatar_url, phone, reputation_score)
+      author:author_id(username, full_name, avatar_url, phone, reputation_score, messenger_url, facebook_url)
     `)
     .eq('id', resolvedParams.id)
     .single()
@@ -165,10 +165,19 @@ export default async function RecruitmentDetailPage({ params }: { params: Promis
                     <ApplyRecruitmentForm recruitmentId={recruitment.id} roles={recruitment.roles} />
                   )}
                   
-                  {author?.phone && (
-                    <a href={`https://zalo.me/${author.phone}`} target="_blank" rel="noreferrer" className="w-full flex items-center justify-center gap-2 py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl font-bold transition">
-                      <MessageCircle className="w-5 h-5" /> Nhắn Zalo
-                    </a>
+                  {(author?.phone || author?.messenger_url || author?.facebook_url) && (
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                      {author?.phone && (
+                        <a href={`https://zalo.me/${author.phone}`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl font-bold transition">
+                          <MessageCircle className="w-5 h-5" /> Zalo
+                        </a>
+                      )}
+                      {(author?.messenger_url || author?.facebook_url) && (
+                        <a href={author?.messenger_url || author?.facebook_url} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl font-bold transition">
+                          <MessageCircle className="w-5 h-5" /> Messenger
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
