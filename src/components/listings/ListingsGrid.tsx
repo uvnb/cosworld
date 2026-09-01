@@ -67,8 +67,8 @@ export function ListingsGrid({ filters }: { filters?: ListingFilters }) {
     <div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
         {listings.map((listing: any) => {
-          const isRent = listing.listing_type === 'rent' || listing.listing_type === 'both'
-          const displayPrice = isRent ? listing.price_per_day : listing.sale_price
+          const isRentType = listing.listing_type === 'rent' || listing.listing_type === 'both' || listing.listing_type === 'want_to_rent'
+          const displayPrice = isRentType ? listing.price_per_day : listing.sale_price
           
               return (
             <Link href={`/listings/${listing.id}`} key={listing.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer flex flex-col group">
@@ -131,7 +131,7 @@ export function ListingsGrid({ filters }: { filters?: ListingFilters }) {
                   </h3>
                   <div className="text-[13px] font-black text-brand-600 mt-1.5">
                     {displayPrice ? displayPrice.toLocaleString('vi-VN') : 0}đ
-                    {isRent && <span className="text-[10px] font-normal text-slate-500">/ngày</span>}
+                    {isRentType && <span className="text-[10px] font-normal text-slate-500">/ngày</span>}
                   </div>
                 </div>
                 

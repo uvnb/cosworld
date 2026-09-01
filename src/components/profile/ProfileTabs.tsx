@@ -61,7 +61,13 @@ export function ProfileTabs({ listings, bookings, reviews }: ProfileTabsProps) {
                 <Link href={`/listings/${item.id}`} className="font-bold text-slate-900 line-clamp-1 group-hover:text-brand-600 transition">
                   {item.title}
                 </Link>
-                <p className="text-sm font-black text-brand-600 mt-1">{item.price_per_day?.toLocaleString('vi-VN')}đ<span className="text-slate-400 font-medium text-xs">/ngày</span></p>
+                <p className="text-sm font-black text-brand-600 mt-1">
+                  {['rent', 'both', 'want_to_rent'].includes(item.listing_type)
+                    ? `${item.price_per_day?.toLocaleString('vi-VN') || 0}đ`
+                    : `${item.sale_price?.toLocaleString('vi-VN') || 0}đ`
+                  }
+                  {['rent', 'both', 'want_to_rent'].includes(item.listing_type) && <span className="text-slate-400 font-medium text-xs">/ngày</span>}
+                </p>
                 <ListingActions listingId={item.id} currentStatus={item.status} />
               </div>
             ))}
