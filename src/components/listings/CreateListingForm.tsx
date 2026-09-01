@@ -260,18 +260,26 @@ export function CreateListingForm({ userId }: { userId: string }) {
 
         <div className="space-y-2">
           <Label className="font-bold">Danh mục sản phẩm/dịch vụ <span className="text-rose-500">*</span></Label>
-          <Select onValueChange={(val: any) => setValue('category', val)} value={watch('category')}>
-            <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn danh mục" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="costume">Trang phục (Costume)</SelectItem>
-              <SelectItem value="wig">Tóc giả (Wig)</SelectItem>
-              <SelectItem value="props">Đạo cụ / Vũ khí</SelectItem>
-              <SelectItem value="shoes">Giày dép</SelectItem>
-              <SelectItem value="accessories">Phụ kiện</SelectItem>
-              <SelectItem value="studio">Cho thuê Studio</SelectItem>
-              <SelectItem value="other">Khác</SelectItem>
-            </SelectContent>
-          </Select>
+          <Controller
+            name="category"
+            control={control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="Chọn danh mục" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="costume">Trang phục (Costume)</SelectItem>
+                  <SelectItem value="wig">Tóc giả (Wig)</SelectItem>
+                  <SelectItem value="props">Đạo cụ / Vũ khí</SelectItem>
+                  <SelectItem value="shoes">Giày dép</SelectItem>
+                  <SelectItem value="accessories">Phụ kiện</SelectItem>
+                  <SelectItem value="studio">Cho thuê Studio</SelectItem>
+                  <SelectItem value="other">Khác</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
 
         {!isStudio && (
@@ -285,28 +293,43 @@ export function CreateListingForm({ userId }: { userId: string }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="font-bold">Loại hình</Label>
-            <Select onValueChange={(val: any) => setValue('listing_type', val)} value={watch('listing_type')}>
-              <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn loại hình" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="rent">Cho Thuê</SelectItem>
-                <SelectItem value="sale">Bán Pass</SelectItem>
-                <SelectItem value="both">Cho Thuê & Bán</SelectItem>
-                <SelectItem value="want_to_rent">Cần Thuê</SelectItem>
-                <SelectItem value="want_to_buy">Cần Mua</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="listing_type"
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Chọn loại hình" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rent">Cho Thuê</SelectItem>
+                    <SelectItem value="sale">Bán Pass</SelectItem>
+                    <SelectItem value="want_to_rent">Cần Thuê</SelectItem>
+                    <SelectItem value="want_to_buy">Cần Mua</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
           {!isStudio && (
             <div className="space-y-2">
               <Label className="font-bold">Size đồ</Label>
-              <Select onValueChange={(val: any) => setValue('size', val)} value={watch('size')}>
-                <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200"><SelectValue placeholder="Chọn size" /></SelectTrigger>
-                <SelectContent>
-                  {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size'].map(s => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Controller
+                name="size"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="Chọn size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One-size'].map(s => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
             </div>
           )}
         </div>
