@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { MapPin, MessageCircle, ShieldCheck, Heart } from 'lucide-react'
+import { MapPin, MessageCircle, ShieldCheck, Heart, MessageSquare } from 'lucide-react'
 import { ListingCarousel } from '@/components/listings/ListingCarousel'
 import Link from 'next/link'
 
@@ -39,7 +39,7 @@ export default async function ListingDetailPage({
     .from('listings')
     .select(`
       *,
-      owner:owner_id(username, full_name, avatar_url, phone, reputation_score),
+      owner:owner_id(username, full_name, avatar_url, phone, reputation_score, facebook_url, messenger_url),
       images:listing_images(r2_url, display_order)
     `)
     .eq('id', resolvedParams.id)
@@ -59,11 +59,11 @@ export default async function ListingDetailPage({
     ? [...listing.images].sort((a, b) => a.display_order - b.display_order).map((img) => img.r2_url)
     : []
 
-  // Xử lý SĐT chủ đồ để làm deep link Zalo (bỏ số 0 ở đầu thay bằng 84)
-  // Thực tế có thể thay đổi cách gọi tuỳ theo Zalo link
-  const rawPhone = Array.isArray(listing.owner) ? listing.owner[0]?.phone : listing.owner?.phone
-  const zaloPhone = rawPhone ? (rawPhone.startsWith('0') ? `84${rawPhone.substring(1)}` : rawPhone) : ''
-  const zaloDeepLink = zaloPhone ? `https://zalo.me/${zaloPhone}` : null
+  const ownerObj = Array.isArray(listing.owner) ? listing.owner[0] : listing.owner;
+  const rawPhone = ownerObj?.phone;
+  const zaloPhone = rawPhone ? (rawPhone.startsWith('0') ? `84${rawPhone.substring(1)}` : rawPhone) : '';
+  const zaloDeepLink = zaloPhone ? `https://zalo.me/${zaloPhone}` : null;
+  const fbLink = ownerObj?.facebook_url || ownerObj?.messenger_url || null;
 
   let tagLabel = 'Cho Thuê'
   let tagClass = 'bg-brand-100 text-brand-700'
@@ -179,9 +179,15 @@ export default async function ListingDetailPage({
                     <MessageCircle className="w-3.5 h-3.5" /> Zalo
                   </a>
                 )}
-                <button className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
-                  Nhắn tin
-                </button>
+                {fbLink ? (
+                  <a href={fbLink.startsWith('http') ? fbLink : `https://${fbLink}`} target="_blank" rel="noreferrer" className="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5" /> Messenger
+                  </a>
+                ) : (
+                  <button className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                    Nhắn tin
+                  </button>
+                )}
               </div>
             </div>
           </div>
