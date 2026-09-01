@@ -67,31 +67,26 @@ export function ListingsSection({ initialQuery }: { initialQuery?: string }) {
             
             <div className="space-y-6">
               
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-700">Hình thức</label>
-                <div className="flex flex-wrap gap-2">
-                  {(['all', 'rent', 'sale', 'want_to_rent', 'want_to_buy'] as const).map(mode => {
-                    let label = 'Tất cả'
-                    if (mode === 'rent') label = 'Cho thuê'
-                    if (mode === 'sale') label = 'Pass lại'
-                    if (mode === 'want_to_rent') label = 'Muốn thuê'
-                    if (mode === 'want_to_buy') label = 'Muốn mua'
-                    
-                    return (
-                      <button
-                        key={mode}
-                        onClick={() => setFilters({ ...filters, listingMode: mode })}
-                        className={`flex-1 min-w-[70px] text-center py-2 px-2 text-[11px] font-bold rounded-xl transition ${
-                          filters.listingMode === mode 
-                            ? 'bg-brand-50 text-brand-700 border-brand-200 border shadow-sm' 
-                            : 'bg-slate-50 text-slate-500 border border-slate-100 hover:text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    )
+                <Select 
+                  value={filters.listingMode || 'all'} 
+                  onValueChange={(val: any) => setFilters({
+                    ...filters, 
+                    listingMode: val
                   })}
-                </div>
+                >
+                  <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-100 text-sm font-medium">
+                    <SelectValue placeholder="Tất cả hình thức" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả hình thức</SelectItem>
+                    <SelectItem value="rent">Thuê</SelectItem>
+                    <SelectItem value="sale">Pass lại</SelectItem>
+                    <SelectItem value="want_to_rent">Cần thuê</SelectItem>
+                    <SelectItem value="want_to_buy">Cần mua</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Size Filter */}
