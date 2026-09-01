@@ -13,8 +13,12 @@ interface ProfileTabsProps {
   currentUserId?: string
 }
 
-export function ProfileTabs({ listings, bookings, reviews, currentUserId }: ProfileTabsProps) {
+export function ProfileTabs({ listings, bookings: initialBookings, reviews, currentUserId }: ProfileTabsProps) {
   const [activeTab, setActiveTab] = useState<'listings' | 'bookings' | 'reviews'>('listings')
+  const [localBookings, setLocalBookings] = useState(initialBookings || [])
+
+  const activeBookings = localBookings.filter((b: any) => b.status !== 'cancelled')
+  const avgRating = reviews?.length ? (reviews.reduce((acc: any, r: any) => acc + r.rating, 0) / reviews.length).toFixed(1) : '0.0'
 
   return (
     <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
@@ -30,7 +34,7 @@ export function ProfileTabs({ listings, bookings, reviews, currentUserId }: Prof
           onClick={() => setActiveTab('bookings')}
           className={`px-6 py-4 border-b-2 font-bold text-sm flex items-center gap-2 cursor-pointer shrink-0 transition ${activeTab === 'bookings' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
         >
-          <ShoppingBag className="w-4 h-4" /> Lịch sử giao dịch ({bookings?.filter(b => b.status !== 'cancelled').length || 0})
+          <ShoppingBag className="w-4 h-4" /> Lịch sử giao dịch ({activeBookings.length})
         </button>
         <button 
           onClick={() => setActiveTab('reviews')}
@@ -80,10 +84,10 @@ export function ProfileTabs({ listings, bookings, reviews, currentUserId }: Prof
         {/* Bookings Tab */}
         {activeTab === 'bookings' && (
           <div className="space-y-4">
-            {!(bookings?.filter(b => b.status !== 'cancelled').length) ? (
+            {activeBookings.length === 0 ? (
               <p className="text-slate-500 text-sm">Bạn chưa có lịch sử giao dịch nào.</p>
             ) : (
-              bookings.filter(b => b.status !== 'cancelled').map(booking => {
+              activeBookings.map((booking: any) => {
                 const isOwner = booking.owner_id === currentUserId
                 const isRenter = booking.renter_id === currentUserId
                 const otherParty = isOwner ? booking.renter : booking.owner
@@ -119,6 +123,13 @@ export function ProfileTabs({ listings, bookings, reviews, currentUserId }: Prof
                         revieweeId={booking.owner_id}
                         status={booking.status} 
                         isOwner={isOwner} 
+                        onStatusChange={(newStatus: string) => {
+                          if (newStatus === 'cancelled') {
+                            setLocalBookings((prev: any) => prev.filter((b: any) => b.id !== booking.id))
+                          } else {
+                            setLocalBookings((prev: any) => prev.map((b: any) => b.id === booking.id ? { ...b, status: newStatus } : b))
+                          }
+                        }}
                       />
                     </div>
                   </div>
@@ -131,10 +142,24 @@ export function ProfileTabs({ listings, bookings, reviews, currentUserId }: Prof
         {/* Reviews Tab */}
         {activeTab === 'reviews' && (
           <div className="space-y-4">
+            {reviews?.length > 0 && (
+              <div className="flex items-center gap-2 mb-6">
+                <div className="flex gap-1">
+                  <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
+                </div>
+                <div className="font-bold text-lg text-slate-900">
+                  {avgRating}/5
+                </div>
+                <div className="text-slate-500 text-sm">
+                  ({reviews.length} đánh giá)
+                </div>
+              </div>
+            )}
+            
             {!reviews?.length ? (
               <p className="text-slate-500 text-sm">Bạn chưa nhận được đánh giá nào.</p>
             ) : (
-              reviews.map(review => (
+              reviews.map((review: any) => (
                 <div key={review.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                   <div className="flex items-center gap-3 mb-2">
                     <Link href={`/profile/${review.reviewer?.username}`} className="flex items-center gap-3 hover:opacity-80 transition">

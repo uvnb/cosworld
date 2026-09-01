@@ -14,9 +14,10 @@ interface BookingActionsProps {
   revieweeId: string
   status: string
   isOwner: boolean
+  onStatusChange?: (newStatus: string) => void
 }
 
-export function BookingActions({ bookingId, listingId, revieweeId, status, isOwner }: BookingActionsProps) {
+export function BookingActions({ bookingId, listingId, revieweeId, status, isOwner, onStatusChange }: BookingActionsProps) {
   const [isLoading, setIsLoading] = useState(false)
   const supabase = createClient()
   const router = useRouter()
@@ -48,7 +49,12 @@ export function BookingActions({ bookingId, listingId, revieweeId, status, isOwn
         }
         toast.success('Cập nhật trạng thái thành công')
       }
-      router.refresh()
+      
+      if (onStatusChange) {
+        onStatusChange(newStatus)
+      } else {
+        router.refresh()
+      }
     } catch (error: any) {
       toast.error(error.message || 'Lỗi cập nhật')
     } finally {
