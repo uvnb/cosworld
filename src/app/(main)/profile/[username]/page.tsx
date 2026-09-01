@@ -27,44 +27,54 @@ export default async function ProfilePage({
     redirect('/')
   }
 
+  // Sử dụng Admin Client để bypass RLS
+  const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const isOwner = user?.id === profile.id
 
   // Fetch Đồ đang cho thuê
-  const { data: listings } = await supabase
+  let listingsQuery = supabaseAdmin
     .from('listings')
     .select('*, listing_images(r2_url)')
     .eq('owner_id', profile.id)
+  
+  if (!isOwner) {
+    listingsQuery = listingsQuery.eq('status', 'active')
+  }
+  const { data: listings } = await listingsQuery
 
   // Fetch Lịch sử giao dịch (cả đi thuê và cho thuê)
-  const { data: bookings } = await supabase
+  const { data: bookings } = await supabaseAdmin
     .from('bookings')
     .select('*, listings(title, city), renter:renter_id(username, full_name, avatar_url), owner:owner_id(username, full_name, avatar_url)')
     .or(`renter_id.eq.${profile.id},owner_id.eq.${profile.id}`)
     .order('created_at', { ascending: false })
 
   // Fetch Đánh giá
-  const { data: reviews } = await supabase
+  const { data: reviews } = await supabaseAdmin
     .from('reviews')
-    .select('*, reviewer:reviewer_id(username, avatar_url), bookings(listings(title))')
+    .select('*, reviewer:reviewer_id(username, full_name, avatar_url), bookings(listings(title))')
     .eq('reviewee_id', profile.id)
     .eq('is_published', true)
 
   // Fetch Lập team & Tuyển staff
-  const { data: recruitments } = await supabase
+  let recruitmentsQuery = supabaseAdmin
     .from('recruitments')
     .select('*, author:author_id(username, full_name, avatar_url, reputation_score)')
     .eq('author_id', profile.id)
     .order('created_at', { ascending: false })
 
+  if (!isOwner) {
+    recruitmentsQuery = recruitmentsQuery.eq('status', 'OPEN')
+  }
+  const { data: recruitments } = await recruitmentsQuery
+
   let hasLiked = false
   if (user) {
-    // Sử dụng Admin Client để bypass RLS, tránh trường hợp RLS bị thiết lập sai khiến không đọc được vote cũ
-    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-
     const { data: vote } = await supabaseAdmin
       .from('reputation_votes')
       .select('vote_value')

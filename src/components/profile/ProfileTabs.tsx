@@ -33,6 +33,12 @@ export function ProfileTabs({ listings, bookings: initialBookings, reviews, recr
           <Package className="w-4 h-4" /> Đồ đang cho thuê ({listings?.length || 0})
         </button>
         <button 
+          onClick={() => setActiveTab('recruitments')}
+          className={`px-6 py-4 border-b-2 font-bold text-sm flex items-center gap-2 cursor-pointer shrink-0 transition ${activeTab === 'recruitments' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+        >
+          <Users className="w-4 h-4" /> Bài đăng tuyển ({recruitments?.length || 0})
+        </button>
+        <button 
           onClick={() => setActiveTab('bookings')}
           className={`px-6 py-4 border-b-2 font-bold text-sm flex items-center gap-2 cursor-pointer shrink-0 transition ${activeTab === 'bookings' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
         >
@@ -43,12 +49,6 @@ export function ProfileTabs({ listings, bookings: initialBookings, reviews, recr
           className={`px-6 py-4 border-b-2 font-bold text-sm flex items-center gap-2 cursor-pointer shrink-0 transition ${activeTab === 'reviews' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
         >
           <Star className="w-4 h-4" /> Đánh giá nhận được ({reviews?.length || 0})
-        </button>
-        <button 
-          onClick={() => setActiveTab('recruitments')}
-          className={`px-6 py-4 border-b-2 font-bold text-sm flex items-center gap-2 cursor-pointer shrink-0 transition ${activeTab === 'recruitments' ? 'border-brand-600 text-brand-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
-        >
-          <Users className="w-4 h-4" /> Bài đăng tuyển ({recruitments?.length || 0})
         </button>
       </div>
 
@@ -167,14 +167,21 @@ export function ProfileTabs({ listings, bookings: initialBookings, reviews, recr
             {!reviews?.length ? (
               <p className="text-slate-500 text-sm">Bạn chưa nhận được đánh giá nào.</p>
             ) : (
-              reviews.map((review: any) => (
+              reviews.map((review: any) => {
+                const reviewer = review.reviewer
+                let displayName = reviewer?.full_name || reviewer?.username || 'Người dùng'
+                if (/^\d{9,12}$/.test(reviewer?.username || '')) {
+                  displayName = reviewer?.full_name || `Người dùng (${reviewer.username.substring(0, 3)}***${reviewer.username.substring(reviewer.username.length - 3)})`
+                }
+
+                return (
                 <div key={review.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                   <div className="flex items-center gap-3 mb-2">
-                    <Link href={`/profile/${review.reviewer?.username}`} className="flex items-center gap-3 hover:opacity-80 transition">
-                      <img src={review.reviewer?.avatar_url || "https://ui-avatars.com/api/?name=" + review.reviewer?.username} className="w-8 h-8 rounded-full" />
+                    <Link href={`/profile/${reviewer?.username}`} className="flex items-center gap-3 hover:opacity-80 transition">
+                      <img src={reviewer?.avatar_url || "https://ui-avatars.com/api/?name=" + (reviewer?.full_name || reviewer?.username)} className="w-8 h-8 rounded-full" />
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-baseline gap-2">
-                          <p className="font-bold text-sm text-slate-900 truncate">{review.reviewer?.username}</p>
+                          <p className="font-bold text-sm text-slate-900 truncate">{displayName}</p>
                           {review.bookings?.listings?.title && (
                             <span className="text-xs text-slate-500 truncate">
                               đã đánh giá giao dịch: <span className="font-medium text-slate-700">{review.bookings.listings.title}</span>
@@ -191,7 +198,8 @@ export function ProfileTabs({ listings, bookings: initialBookings, reviews, recr
                   </div>
                   <p className="text-sm text-slate-600">{review.comment}</p>
                 </div>
-              ))
+                )
+              })
             )}
           </div>
         )}
