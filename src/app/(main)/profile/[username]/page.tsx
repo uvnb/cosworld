@@ -49,6 +49,13 @@ export default async function ProfilePage({
     .eq('reviewee_id', profile.id)
     .eq('is_published', true)
 
+  // Fetch Lập team & Tuyển staff
+  const { data: recruitments } = await supabase
+    .from('recruitments')
+    .select('*, author:author_id(username, full_name, avatar_url, reputation_score)')
+    .eq('author_id', profile.id)
+    .order('created_at', { ascending: false })
+
   let hasLiked = false
   if (user) {
     // Sử dụng Admin Client để bypass RLS, tránh trường hợp RLS bị thiết lập sai khiến không đọc được vote cũ
@@ -189,6 +196,7 @@ export default async function ProfilePage({
         listings={listings || []} 
         bookings={bookings || []} 
         reviews={reviews || []}
+        recruitments={recruitments || []}
         currentUserId={user?.id}
       />
 
