@@ -1,91 +1,139 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import * as cheerio from 'cheerio'
 
-// Lấy Regex để extract location và province
-function extractLocationData(text: string) {
-  const lowerText = text.toLowerCase()
-  if (lowerText.includes('hà nội') || lowerText.includes('hanoi')) return { province: 'Hà Nội', location: 'Hà Nội' }
-  if (lowerText.includes('hcm') || lowerText.includes('hồ chí minh')) return { province: 'TP. HCM', location: 'TP. Hồ Chí Minh' }
-  if (lowerText.includes('đà nẵng') || lowerText.includes('danang')) return { province: 'Đà Nẵng', location: 'Đà Nẵng' }
-  if (lowerText.includes('cần thơ')) return { province: 'Cần Thơ', location: 'Cần Thơ' }
-  if (lowerText.includes('đà lạt')) return { province: 'Lâm Đồng', location: 'Đà Lạt' }
+// --- CÁC MODULE CỦA PHASE 3 ---
+
+// 1. Module tích hợp Apify (Cào Facebook Events)
+async function fetchApifyFacebookEvents(): Promise<any[]> {
+  const APIFY_TOKEN = process.env.APIFY_API_TOKEN
+  if (!APIFY_TOKEN) {
+    console.warn('Thiếu APIFY_API_TOKEN. Bỏ qua nguồn Facebook.')
+    return []
+  }
   
-  return { province: 'Chưa xác định', location: 'Đang cập nhật' }
+  try {
+    // Gọi API của Apify Actor (Ví dụ: Facebook Pages Scraper)
+    // const res = await fetch(`https://api.apify.com/v2/acts/apify~facebook-pages-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`, { method: 'POST' })
+    // return await res.json()
+    return [] // Trả về mảng rỗng chờ tích hợp thực tế
+  } catch (err) {
+    console.error('Lỗi khi gọi Apify:', err)
+    return []
+  }
+}
+
+// 2. Module cào dữ liệu từ Website Bán vé (VD: Ticketbox)
+async function fetchTicketboxEvents(): Promise<any[]> {
+  try {
+    const res = await fetch('https://ticketbox.vn/events?q=cosplay')
+    if (!res.ok) return []
+    const html = await res.text()
+    const $ = cheerio.load(html)
+    const events: any[] = []
+    
+    // Giả lập logic bóc tách DOM của Ticketbox (cần tuỳ chỉnh theo class thực tế)
+    $('.event-item').each((_, el) => {
+      events.push({
+        title: $(el).find('.title').text().trim(),
+        source_url: 'https://ticketbox.vn' + $(el).find('a').attr('href'),
+        banner_url: $(el).find('img').attr('src'),
+        raw_text: $(el).text() // Dùng AI để trích xuất sau
+      })
+    })
+    return events
+  } catch (err) {
+    console.error('Lỗi cào Ticketbox:', err)
+    return []
+  }
+}
+
+// 3. Module AI Extract (Chuẩn hoá dữ liệu bằng OpenAI/Gemini)
+async function extractEventDataWithAI(rawText: string) {
+  // Nếu có API Key, có thể gọi ChatGPT để phân tích:
+  // "Hãy tìm Ngày Bắt Đầu, Ngày Kết Thúc, Tỉnh Thành, và Địa Điểm cụ thể trong văn bản sau..."
+  
+  // Fallback Rule-based (như hiện tại) nếu chưa gắn AI:
+  const lowerText = rawText.toLowerCase()
+  let province = 'Chưa xác định'
+  let location = 'Đang cập nhật'
+  
+  if (lowerText.includes('hà nội') || lowerText.includes('hanoi')) { province = 'Hà Nội'; location = 'Hà Nội' }
+  else if (lowerText.includes('hcm') || lowerText.includes('hồ chí minh')) { province = 'TP. HCM'; location = 'TP. Hồ Chí Minh' }
+  else if (lowerText.includes('đà nẵng') || lowerText.includes('danang')) { province = 'Đà Nẵng'; location = 'Đà Nẵng' }
+
+  return { 
+    province, 
+    location, 
+    start_date: new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(), // Dummy
+    end_date: new Date(new Date().getTime() + 11 * 24 * 60 * 60 * 1000).toISOString() // Dummy
+  }
 }
 
 function generateSlug(title: string) {
   return title
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // remove diacritics
-    .replace(/[^a-z0-9]+/g, '-')     // replace non-alphanumeric with dash
-    .replace(/(^-|-$)+/g, '')        // trim dashes
+    .replace(/[\u0300-\u036f]/g, '') 
+    .replace(/[^a-z0-9]+/g, '-')     
+    .replace(/(^-|-$)+/g, '')        
     + '-' + Date.now().toString().slice(-6)
 }
 
 export async function GET(request: Request) {
-  // 1. Xác thực Vercel Cron (chống request từ bên ngoài)
+  // 1. Xác thực Vercel Cron
   const authHeader = request.headers.get('authorization')
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    // 2. Khởi tạo Supabase Client (sử dụng Service Role Key để bỏ qua RLS vì Cron chạy ở Server)
-    // Nếu không có service_role_key, ta dùng anon key tạm thời cho mục đích demo
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // 3. Crawler Logic (Giả lập việc cào dữ liệu từ Facebook Graph API hoặc Puppeteer)
-    // Thực tế: fetch('https://api.facebook.com/v16.0/.../events')
-    const crawledData = [
-      {
-        title: 'Lễ hội Manga Comic Con Vietnam (Mẫu 1)',
-        description: 'Sự kiện giao lưu văn hóa cosplay, anime, comic lớn nhất trong năm.',
-        banner_url: 'https://images.unsplash.com/photo-1574516709848-1f6305aabaf5?auto=format&fit=crop&q=80',
-        text_content: 'Địa điểm: SECC, Quận 7, TP. HCM',
-        start_date: new Date(new Date().getTime() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-        end_date: new Date(new Date().getTime() + 11 * 24 * 60 * 60 * 1000).toISOString(),
-        source_url: 'https://www.facebook.com/share/g/19TG16ACDN/?mibextid=wwXIfr'
-      },
-      {
-        title: 'Natsu Matsuri - Lễ hội mùa hè (Mẫu 2)',
-        description: 'Lễ hội văn hóa Nhật Bản kết hợp sự kiện cosplay quy mô lớn.',
-        banner_url: 'https://images.unsplash.com/photo-1628102491629-778571d893a3?auto=format&fit=crop&q=80',
-        text_content: 'Địa điểm: AEON Mall Long Biên, Hà Nội. Thời gian: 25-26/09/2026',
-        start_date: new Date(new Date().getTime() + 20 * 24 * 60 * 60 * 1000).toISOString(),
-        end_date: new Date(new Date().getTime() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-        source_url: 'https://www.facebook.com/share/g/1Hp2iuQ8z9/?mibextid=wwXIfr'
-      },
-      {
-        title: 'Cosplay Festival - Cần Thơ (Mẫu 3)',
-        description: 'Sự kiện offline cho cộng đồng Coser miền Tây.',
-        banner_url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80',
-        text_content: 'Địa điểm: Sense City Cần Thơ',
-        start_date: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        end_date: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        source_url: 'https://www.facebook.com/share/g/184cCacXee/?mibextid=wwXIfr'
-      }
-    ]
+    // 2. Chạy đồng thời các bộ Crawler (Phase 3 Architecture)
+    const [apifyEvents, ticketboxEvents] = await Promise.all([
+      fetchApifyFacebookEvents(),
+      fetchTicketboxEvents()
+    ])
 
-    const eventsToInsert = crawledData.map(item => {
-      const locationData = extractLocationData(item.text_content)
-      
-      return {
-        title: item.title,
-        slug: generateSlug(item.title),
-        description: item.description,
-        banner_url: item.banner_url,
-        location: locationData.location,
-        province: locationData.province,
-        start_date: item.start_date,
-        end_date: item.end_date,
-        source_url: item.source_url,
-        is_crawled: true,
-        status: 'PENDING' // Chờ Admin duyệt
-      }
-    })
+    // Mock data tạm thời để Test nếu các nguồn trên trả về rỗng do chưa có API key
+    let rawCrawledData = [...apifyEvents, ...ticketboxEvents]
+    
+    if (rawCrawledData.length === 0) {
+      rawCrawledData = [
+        {
+          title: 'Lễ hội Manga Comic Con Vietnam (Dữ liệu Test Phase 3)',
+          description: 'Sự kiện giao lưu văn hóa cosplay, anime, comic lớn nhất trong năm.',
+          banner_url: 'https://images.unsplash.com/photo-1574516709848-1f6305aabaf5?auto=format&fit=crop&q=80',
+          raw_text: 'Địa điểm: SECC, Quận 7, TP. HCM. Khai mạc tháng sau.',
+          source_url: 'https://www.facebook.com/share/g/19TG16ACDN/?mibextid=wwXIfr'
+        }
+      ]
+    }
+
+    // 3. Tiền xử lý & AI Extraction
+    const eventsToInsert = await Promise.all(
+      rawCrawledData.map(async (item) => {
+        // Áp dụng AI Extract
+        const extractedData = await extractEventDataWithAI(item.raw_text || item.description || item.title)
+        
+        return {
+          title: item.title,
+          slug: generateSlug(item.title),
+          description: item.description || '',
+          banner_url: item.banner_url || '',
+          location: extractedData.location,
+          province: extractedData.province,
+          start_date: extractedData.start_date,
+          end_date: extractedData.end_date,
+          source_url: item.source_url,
+          is_crawled: true,
+          status: 'PENDING'
+        }
+      })
+    )
 
     // 4. Lưu vào Database (Sử dụng upsert để bỏ qua các event đã tồn tại)
     const { data, error } = await supabase
@@ -100,7 +148,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Đã cào và chờ duyệt ${data.length} sự kiện.`,
+      message: `Hoàn tất Crawler Pipeline. Đã gửi ${eventsToInsert.length} sự kiện vào hàng đợi (Bỏ qua trùng lặp).`,
       events: data
     })
 
