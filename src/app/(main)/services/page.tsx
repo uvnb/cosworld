@@ -10,6 +10,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
   const status = resolvedParams?.status || 'OPEN'
 
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   
   let query = supabase
     .from('recruitments')
@@ -41,8 +42,8 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
             <h1 className="text-3xl sm:text-4xl font-black mb-3">Lập Team Cosplay & Tuyển Dụng Staff</h1>
             <p className="text-brand-100 text-lg max-w-2xl">Tìm đồng đội đi Festival, Makeup Artist, Photographer & Studio chuyên nghiệp nhanh chóng và uy tín.</p>
           </div>
-          <Link href="/services/create" className="px-8 py-3.5 bg-white text-brand-700 hover:bg-slate-50 rounded-full text-base font-extrabold shrink-0 transition flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95">
-            <Plus className="w-5 h-5" /> Đăng tin tuyển team
+          <Link href="/services/create" className="px-6 py-2.5 bg-white text-brand-700 hover:bg-slate-50 rounded-full text-sm font-extrabold shrink-0 transition flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95">
+            <Plus className="w-4 h-4" /> Đăng tin tuyển team
           </Link>
         </div>
         
@@ -178,9 +179,15 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                         </div>
                       </Link>
                       <Link href={`/services/${rec.id}`}>
-                        <button className="px-4 py-2 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-xl text-xs font-bold transition">
-                          Ứng tuyển ngay
-                        </button>
+                        {user?.id === rec.author_id ? (
+                          <button className="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold transition">
+                            Xem ứng viên
+                          </button>
+                        ) : (
+                          <button className="px-4 py-2 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-xl text-xs font-bold transition">
+                            Ứng tuyển ngay
+                          </button>
+                        )}
                       </Link>
                     </div>
                   </div>
