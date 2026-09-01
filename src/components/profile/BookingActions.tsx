@@ -28,7 +28,7 @@ export function BookingActions({ bookingId, listingId, revieweeId, status, isOwn
       if (newStatus === 'cancelled' || newStatus === 'rejected') {
         const { error } = await supabase
           .from('bookings')
-          .update({ status: 'rejected' })
+          .update({ status: 'cancelled' })
           .eq('id', bookingId)
         
         if (error) throw error
