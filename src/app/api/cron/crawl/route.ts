@@ -87,10 +87,10 @@ export async function GET(request: Request) {
       }
     })
 
-    // 4. Lưu vào Database
+    // 4. Lưu vào Database (Sử dụng upsert để bỏ qua các event đã tồn tại)
     const { data, error } = await supabase
       .from('events')
-      .insert(eventsToInsert)
+      .upsert(eventsToInsert, { onConflict: 'source_url', ignoreDuplicates: true })
       .select('id, title')
 
     if (error) {
