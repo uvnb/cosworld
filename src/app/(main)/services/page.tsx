@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { MapPin, Search, Filter, Plus, Users, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
+import { DeleteRecruitmentButton } from '@/components/services/DeleteRecruitmentButton'
 
 export default async function ServicesPage({ searchParams }: { searchParams: Promise<{ q?: string, location?: string, role?: string, status?: string }> }) {
   const resolvedParams = await searchParams
@@ -178,17 +179,22 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                           </p>
                         </div>
                       </Link>
-                      <Link href={`/services/${rec.id}`}>
-                        {user?.id === rec.author_id ? (
-                          <button className="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold transition">
-                            Xem ứng viên
-                          </button>
-                        ) : (
-                          <button className="px-4 py-2 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-xl text-xs font-bold transition">
-                            Ứng tuyển ngay
-                          </button>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/services/${rec.id}`}>
+                          {user?.id === rec.author_id ? (
+                            <button className="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold transition">
+                              Xem ứng viên
+                            </button>
+                          ) : (
+                            <button className="px-4 py-2 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-xl text-xs font-bold transition">
+                              Ứng tuyển ngay
+                            </button>
+                          )}
+                        </Link>
+                        {user?.id === rec.author_id && (
+                          <DeleteRecruitmentButton recruitmentId={rec.id} />
                         )}
-                      </Link>
+                      </div>
                     </div>
                   </div>
                 )
