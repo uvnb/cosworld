@@ -37,7 +37,7 @@ export default async function ProfilePage({
   const isOwner = user?.id === profile.id
 
   // Fetch Đồ đang cho thuê
-  let listingsQuery = supabaseAdmin
+  let listingsQuery = supabase
     .from('listings')
     .select('*, listing_images(r2_url)')
     .eq('owner_id', profile.id)
@@ -48,21 +48,21 @@ export default async function ProfilePage({
   const { data: listings } = await listingsQuery
 
   // Fetch Lịch sử giao dịch (cả đi thuê và cho thuê)
-  const { data: bookings } = await supabaseAdmin
+  const { data: bookings } = await supabase
     .from('bookings')
     .select('*, listings(title, city), renter:renter_id(username, full_name, avatar_url), owner:owner_id(username, full_name, avatar_url)')
     .or(`renter_id.eq.${profile.id},owner_id.eq.${profile.id}`)
     .order('created_at', { ascending: false })
 
   // Fetch Đánh giá
-  const { data: reviews } = await supabaseAdmin
+  const { data: reviews } = await supabase
     .from('reviews')
     .select('*, reviewer:reviewer_id(username, full_name, avatar_url), bookings(listings(title))')
     .eq('reviewee_id', profile.id)
     .eq('is_published', true)
 
   // Fetch Lập team & Tuyển staff
-  let recruitmentsQuery = supabaseAdmin
+  let recruitmentsQuery = supabase
     .from('recruitments')
     .select('*, author:author_id(username, full_name, avatar_url, reputation_score)')
     .eq('author_id', profile.id)
