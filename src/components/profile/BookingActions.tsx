@@ -41,8 +41,8 @@ export function BookingActions({ bookingId, listingId, revieweeId, status, isOwn
         if (error) throw error
 
         if (newStatus === 'completed' && isOwner) {
-          if (window.confirm('Giao dịch đã hoàn thành! Bạn có muốn ẨN bài đăng này để không nhận thêm yêu cầu mới không?\n(Chọn OK để Ẩn, Hủy để Giữ nguyên bài đăng)')) {
-            await supabase.from('listings').update({ status: 'hidden' }).eq('id', listingId)
+          if (window.confirm('Giao dịch đã hoàn thành! Bạn có muốn ẨN bài đăng sản phẩm này trên trang "Thuê & Mua bán" để không nhận thêm yêu cầu mới không?\n(Chọn OK để Ẩn, Hủy để Giữ nguyên)')) {
+            await supabase.from('listings').update({ status: 'inactive' }).eq('id', listingId)
             toast.success('Đã ẩn bài đăng thành công!')
           }
         }

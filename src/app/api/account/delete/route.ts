@@ -104,12 +104,20 @@ export async function POST() {
       console.error('Failed to cleanup storage, continuing anyway:', e)
     }
 
-    // 5. Finally, delete the auth user using admin API
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    // 5. Delete the auth user using our custom RPC to get detailed constraint errors
+    const { data: dbResult, error: rpcError } = await supabaseAdmin.rpc('force_delete_user', { target_user_id: userId })
 
-    if (deleteError) {
-      console.error('Admin deleteUser error:', deleteError)
-      return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    if (rpcError) {
+      console.error('RPC error:', rpcError)
+      return NextResponse.json({ error: rpcError.message }, { status: 500 })
+    }
+    
+    if (dbResult && dbResult.success === false) {
+      console.error('Database constraint error:', dbResult)
+      // Return the detailed PostgreSQL error message to the frontend
+      return NextResponse.json({ 
+        error: `Database constraint: ${dbResult.error}. Chi tiết: ${dbResult.detail || 'Không có'}` 
+      }, { status: 500 })
     }
 
     // 5. Sign out the current session
