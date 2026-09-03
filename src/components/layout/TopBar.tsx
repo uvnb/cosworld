@@ -26,15 +26,15 @@ export async function TopBar() {
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between gap-6">
         
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="h-10 w-10 flex items-center justify-center">
+        <Link href="/" className="flex items-center gap-3 shrink-0">
+          <div className="h-12 w-12 flex items-center justify-center">
             <img src="/logo-web.png" alt="CosWorld Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <span className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-1">
+            <span className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-1">
               Cos<span className="text-brand-600">World</span>
             </span>
-            <span className="hidden md:block text-[10px] text-slate-400 font-semibold uppercase tracking-wider -mt-1">
+            <span className="hidden md:block text-[10px] text-slate-400 font-semibold uppercase tracking-wider -mt-1.5">
               Thuê đồ • Tuyển staff • Sự kiện
             </span>
           </div>

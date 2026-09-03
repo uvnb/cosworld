@@ -39,7 +39,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // 3. Lấy 3 Bài Tuyển Staff/Lập team mới nhất
   const { data: recentRecruitments } = await supabase
     .from('recruitments')
-    .select('id, title, location, roles, created_at')
+    .select('id, title, location, roles, created_at, author:author_id(id, username, full_name, avatar_url)')
     .eq('status', 'OPEN')
     .order('created_at', { ascending: false })
     .limit(3)
@@ -122,15 +122,22 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 </Link>
               </div>
               <div className="space-y-3.5">
-                {recentRecruitments && recentRecruitments.length > 0 ? recentRecruitments.map(rec => (
-                  <Link href={`/services/${rec.id}`} key={rec.id} className="block group cursor-pointer hover:bg-slate-50 p-2 -mx-2 rounded-xl transition">
-                    <h4 className="text-xs font-bold text-slate-800 line-clamp-2 group-hover:text-blue-600 transition">{rec.title}</h4>
-                    <div className="text-[10px] text-slate-500 mt-1 flex items-center justify-between">
-                      <span className="truncate max-w-[120px]">📍 {rec.location}</span>
-                      <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">{rec.roles?.[0] || 'Member'}</span>
-                    </div>
-                  </Link>
-                )) : (
+                {recentRecruitments && recentRecruitments.length > 0 ? recentRecruitments.map(rec => {
+                  const author: any = Array.isArray(rec.author) ? rec.author[0] : rec.author;
+                  return (
+                  <div key={rec.id} className="flex gap-3 items-start group hover:bg-slate-50 p-2 -mx-2 rounded-xl transition">
+                    <Link href={`/profile/${author?.id}`} className="shrink-0 mt-0.5">
+                      <img src={author?.avatar_url || `https://ui-avatars.com/api/?name=${author?.username || 'U'}`} className="w-9 h-9 rounded-full border border-slate-200 bg-white object-cover shadow-sm hover:opacity-80 transition" alt="Avatar" />
+                    </Link>
+                    <Link href={`/services/${rec.id}`} className="block flex-1 min-w-0 cursor-pointer">
+                      <h4 className="text-xs font-bold text-slate-800 line-clamp-2 group-hover:text-blue-600 transition mb-1.5">{rec.title}</h4>
+                      <div className="text-[10px] text-slate-500 flex items-center justify-between gap-2">
+                        <span className="truncate flex-1">📍 {rec.location}</span>
+                        <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium shrink-0">{rec.roles?.[0] || 'Member'}</span>
+                      </div>
+                    </Link>
+                  </div>
+                )}) : (
                   <div className="flex flex-col items-center justify-center py-6 text-center">
                     <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center mb-2">
                       <AlertCircle className="w-5 h-5 text-slate-400" />
