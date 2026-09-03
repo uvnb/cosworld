@@ -11,6 +11,39 @@ export async function deleteListing(listingId: string) {
     throw new Error('Bạn cần đăng nhập để thực hiện chức năng này.')
   }
 
+  // 1. Lấy danh sách ảnh của bài đăng này
+  const { data: images } = await supabase
+    .from('listing_images')
+    .select('r2_url')
+    .eq('listing_id', listingId)
+
+  // 2. Trích xuất keys từ r2_url
+  if (images && images.length > 0) {
+    const keysToDelete = images.map(img => {
+      try {
+        const urlObj = new URL(img.r2_url, process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000')
+        if (urlObj.pathname.startsWith('/api/image')) {
+          return urlObj.searchParams.get('key')
+        }
+        // Trường hợp dùng custom domain R2: https://pub-xxx.r2.dev/listings/user_id/uuid.webp
+        const R2_DOMAIN = process.env.NEXT_PUBLIC_R2_PUBLIC_URL?.replace('https://', '').replace('http://', '')
+        if (R2_DOMAIN && urlObj.hostname.includes(R2_DOMAIN)) {
+          return urlObj.pathname.substring(1) // Xóa dấu '/' ở đầu
+        }
+        // Fallback: Lấy path mặc định
+        return urlObj.pathname.substring(1)
+      } catch (e) {
+        return null
+      }
+    }).filter(Boolean) as string[]
+
+    if (keysToDelete.length > 0) {
+      const { deleteFromR2 } = await import('@/lib/r2/delete')
+      await deleteFromR2(keysToDelete)
+    }
+  }
+
+  // 3. Xóa bài đăng khỏi DB (Sẽ cascade xóa luôn listing_images)
   const { error } = await supabase
     .from('listings')
     .delete()
