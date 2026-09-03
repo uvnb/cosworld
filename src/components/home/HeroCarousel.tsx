@@ -11,15 +11,30 @@ export function HeroCarousel({ events }: { events: any[] }) {
   if (!events || events.length === 0) {
     return (
       <div className="relative w-full h-[280px] sm:h-[350px] rounded-3xl overflow-hidden bg-gradient-to-r from-brand-600 to-indigo-600 shadow-lg">
+        {/* Background Video (Desktop only) */}
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover hidden sm:block"
+        >
+          <source src="/videos/hero.mp4" type="video/mp4" />
+        </video>
+        
+        {/* Overlay for Video (Desktop) */}
+        <div className="absolute inset-0 bg-black/0 sm:bg-purple-900/50"></div>
+
         <div className="absolute inset-0 flex flex-col justify-center px-8 sm:px-16 text-white z-10">
-          <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold w-max mb-3">MỚI RA MẮT</span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold mb-4 max-w-xl leading-tight">Khám phá vũ trụ Cosplay lớn nhất Việt Nam</h1>
-          <p className="text-brand-100 mb-6 max-w-lg text-sm sm:text-base">Thuê đồ, lập team và cập nhật các Festival sự kiện hot nhất đang diễn ra quanh bạn.</p>
+          <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold w-max mb-3 border border-white/20">MỚI RA MẮT</span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold mb-4 max-w-xl leading-tight drop-shadow-sm">Khám phá vũ trụ Cosplay lớn nhất Việt Nam</h1>
+          <p className="text-white/90 font-medium mb-6 max-w-lg text-sm sm:text-base drop-shadow-sm">Thuê đồ, lập team và cập nhật các Festival sự kiện hot nhất đang diễn ra quanh bạn.</p>
           <Link href="/events" className="bg-white text-brand-600 px-6 py-2.5 rounded-full font-bold w-max hover:bg-brand-50 transition shadow-md hover:scale-105">Khám phá Sự kiện</Link>
         </div>
-        {/* Abstract background graphics */}
-        <div className="absolute right-0 bottom-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-x-1/4 translate-y-1/4"></div>
-        <div className="absolute left-1/4 top-0 w-48 h-48 bg-indigo-400/20 rounded-full blur-2xl -translate-y-1/2"></div>
+        
+        {/* Abstract background graphics (Mobile only) */}
+        <div className="absolute right-0 bottom-0 w-64 h-64 bg-white/10 rounded-full blur-3xl translate-x-1/4 translate-y-1/4 sm:hidden"></div>
+        <div className="absolute left-1/4 top-0 w-48 h-48 bg-indigo-400/20 rounded-full blur-2xl -translate-y-1/2 sm:hidden"></div>
       </div>
     )
   }
