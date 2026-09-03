@@ -15,7 +15,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
   
   let query = supabase
     .from('recruitments')
-    .select('*, author:author_id(username, full_name, avatar_url, reputation_score)')
+    .select('*, author:author_id(id, username, full_name, avatar_url, reputation_score)')
     .order('created_at', { ascending: false })
   
   if (q) {
@@ -170,7 +170,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Pro
                     </div>
                     
                     <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                      <Link href={`/profile/${author?.username || ''}`} className="flex items-center gap-3 hover:opacity-80 transition">
+                      <Link href={`/profile/${author?.id || ''}`} className="flex items-center gap-3 hover:opacity-80 transition">
                         <img src={author?.avatar_url || `https://ui-avatars.com/api/?name=${author?.username || 'User'}`} className="w-9 h-9 rounded-full border border-slate-200 bg-slate-50" alt="avatar" />
                         <div>
                           <p className="text-sm font-bold text-slate-900 line-clamp-1">{author?.full_name || author?.username}</p>

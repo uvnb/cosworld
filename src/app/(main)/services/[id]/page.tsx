@@ -15,7 +15,7 @@ export default async function RecruitmentDetailPage({ params }: { params: Promis
     .from('recruitments')
     .select(`
       *,
-      author:author_id(username, full_name, avatar_url, phone, reputation_score, messenger_url, facebook_url)
+      author:author_id(id, username, full_name, avatar_url, phone, reputation_score, messenger_url, facebook_url)
     `)
     .eq('id', resolvedParams.id)
     .single()
@@ -124,7 +124,7 @@ export default async function RecruitmentDetailPage({ params }: { params: Promis
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-6">
               <h3 className="font-bold text-slate-900 mb-4">Người đăng tuyển</h3>
-              <Link href={`/profile/${author?.username || ''}`} className="flex items-center gap-4 mb-6 hover:opacity-80 transition cursor-pointer">
+              <Link href={`/profile/${author?.id || ''}`} className="flex items-center gap-4 mb-6 hover:opacity-80 transition cursor-pointer">
                 <img 
                   src={author?.avatar_url || `https://ui-avatars.com/api/?name=${author?.username || 'User'}`} 
                   className="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 object-cover" 

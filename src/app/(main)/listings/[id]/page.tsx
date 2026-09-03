@@ -41,7 +41,7 @@ export default async function ListingDetailPage({
     .from('listings')
     .select(`
       *,
-      owner:owner_id(username, full_name, avatar_url, phone, reputation_score, facebook_url, messenger_url),
+      owner:owner_id(id, username, full_name, avatar_url, phone, reputation_score, facebook_url, messenger_url),
       images:listing_images(r2_url, display_order)
     `)
     .eq('id', resolvedParams.id)
@@ -149,7 +149,7 @@ export default async function ListingDetailPage({
           <div className="pt-6 border-t border-slate-100">
             <h3 className="font-bold text-slate-900 mb-4">Thông tin chủ đồ</h3>
             <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white">
-              <Link href={`/profile/${Array.isArray(listing.owner) ? listing.owner[0]?.username : listing.owner?.username || ''}`} className="flex items-center gap-4 flex-1 min-w-0 hover:opacity-80 transition">
+              <Link href={`/profile/${Array.isArray(listing.owner) ? listing.owner[0]?.id : listing.owner?.id || ''}`} className="flex items-center gap-4 flex-1 min-w-0 hover:opacity-80 transition">
                 <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
                   {Array.isArray(listing.owner) ? (
                     listing.owner[0]?.avatar_url && <img src={listing.owner[0].avatar_url} alt="" className="w-full h-full object-cover" />

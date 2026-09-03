@@ -93,10 +93,10 @@ export async function POST(request: Request) {
     }
 
     revalidatePath('/profile')
-    revalidatePath(`/profile/${username}`)
+    revalidatePath(`/profile/${user.id}`)
     revalidatePath('/')
 
-    return NextResponse.json({ success: true, username })
+    return NextResponse.json({ success: true, id: user.id })
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Có lỗi xảy ra' }, { status: 500 })
   }

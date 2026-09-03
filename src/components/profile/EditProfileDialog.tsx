@@ -89,8 +89,8 @@ export function EditProfileDialog({ profile, email, triggerType = 'edit' }: Edit
       toast.success('Cập nhật hồ sơ thành công!')
 
       // Hard redirect to avoid React rendering errors
-      if (data.username) {
-        window.location.href = `/profile/${data.username}`
+      if (data.id) {
+        window.location.href = `/profile/${data.id}`
       } else {
         window.location.reload()
       }

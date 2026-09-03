@@ -56,7 +56,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         )}
 
         {/* Category Icon Bar */}
-        <section className="flex sm:grid sm:grid-cols-7 gap-3 sm:gap-4 overflow-x-auto hide-scrollbar pb-2">
+        <section className="flex sm:grid sm:grid-cols-7 gap-3 sm:gap-4 overflow-x-auto hide-scrollbar p-1 -m-1 pb-3">
           {[
             { id: '', icon: LayoutGrid, label: 'Tất cả', color: 'text-brand-600', bg: 'bg-brand-50' },
             { id: 'costume', icon: Shirt, label: 'Trang phục', color: 'text-purple-600', bg: 'bg-purple-50' },

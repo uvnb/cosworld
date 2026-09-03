@@ -127,7 +127,7 @@ export function CreateBookingDialog({
         'NEW_BOOKING',
         'Yêu cầu giao dịch mới',
         `Bạn có một yêu cầu giao dịch mới từ khách hàng.`,
-        `/profile/${user.user_metadata?.username || user.id}` // Link tới profile khách
+        `/profile/${user.id}` // Link tới profile khách
       )
 
       toast.success('Đã gửi yêu cầu giao dịch! Vui lòng nhắn tin với đối tác để chốt đơn.')

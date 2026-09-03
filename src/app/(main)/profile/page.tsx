@@ -10,16 +10,10 @@ export default async function ProfileRedirectPage() {
     redirect('/login')
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('username')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.username) {
-    redirect(`/profile/${profile.username}`)
+  if (user.id) {
+    redirect(`/profile/${user.id}`)
   } else {
-    // Fallback if no username
+    // Fallback if no user
     redirect('/')
   }
 }

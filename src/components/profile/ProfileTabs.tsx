@@ -103,7 +103,7 @@ export function ProfileTabs({ listings, bookings: initialBookings, reviews, recr
                 return (
                   <div key={booking.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 gap-4">
                     <div className="flex items-center gap-4">
-                      <Link href={`/profile/${otherParty?.username || ''}`} className="shrink-0 hover:opacity-80 transition">
+                      <Link href={`/profile/${otherParty?.id || ''}`} className="shrink-0 hover:opacity-80 transition">
                         <img 
                           src={otherParty?.avatar_url || `https://ui-avatars.com/api/?name=${otherParty?.username || 'U'}&background=random`} 
                           className="w-12 h-12 rounded-full object-cover border border-slate-200 bg-white" 
@@ -177,7 +177,7 @@ export function ProfileTabs({ listings, bookings: initialBookings, reviews, recr
                 return (
                 <div key={review.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                   <div className="flex items-center gap-3 mb-2">
-                    <Link href={`/profile/${reviewer?.username}`} className="flex items-center gap-3 hover:opacity-80 transition">
+                    <Link href={`/profile/${reviewer?.id}`} className="flex items-center gap-3 hover:opacity-80 transition">
                       <img src={reviewer?.avatar_url || "https://ui-avatars.com/api/?name=" + (reviewer?.full_name || reviewer?.username)} className="w-8 h-8 rounded-full" />
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-baseline gap-2">
@@ -253,7 +253,7 @@ export function ProfileTabs({ listings, bookings: initialBookings, reviews, recr
                     </div>
                     
                     <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
-                      <Link href={`/profile/${author?.username || ''}`} className="flex items-center gap-3 hover:opacity-80 transition">
+                      <Link href={`/profile/${author?.id || ''}`} className="flex items-center gap-3 hover:opacity-80 transition">
                         <img src={author?.avatar_url || `https://ui-avatars.com/api/?name=${author?.username || 'User'}`} className="w-9 h-9 rounded-full border border-slate-200 bg-white" alt="avatar" />
                         <div>
                           <p className="text-sm font-bold text-slate-900 line-clamp-1">{author?.full_name || author?.username}</p>

@@ -86,7 +86,7 @@ export async function updateProfile(formData: FormData) {
   }
 
   revalidatePath('/profile')
-  revalidatePath(`/profile/${username}`)
+  revalidatePath(`/profile/${user.id}`)
   revalidatePath('/')
   
   return { username }

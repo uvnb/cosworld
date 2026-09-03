@@ -8,18 +8,18 @@ import { LikeProfileButton } from '@/components/profile/LikeProfileButton'
 export default async function ProfilePage({
   params
 }: {
-  params: Promise<{ username: string }>
+  params: Promise<{ id: string }>
 }) {
   const supabase = await createClient()
   const resolvedParams = await params
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Fetch profile by username
+  // Fetch profile by ID
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .eq('username', resolvedParams.username)
+    .eq('id', resolvedParams.id)
     .maybeSingle()
 
   if (!profile) {
@@ -50,21 +50,21 @@ export default async function ProfilePage({
   // Fetch Lịch sử giao dịch (cả đi thuê và cho thuê)
   const { data: bookings } = await supabase
     .from('bookings')
-    .select('*, listings(title, city), renter:renter_id(username, full_name, avatar_url), owner:owner_id(username, full_name, avatar_url)')
+    .select('*, listings(title, city), renter:renter_id(id, username, full_name, avatar_url), owner:owner_id(id, username, full_name, avatar_url)')
     .or(`renter_id.eq.${profile.id},owner_id.eq.${profile.id}`)
     .order('created_at', { ascending: false })
 
   // Fetch Đánh giá
   const { data: reviews } = await supabase
     .from('reviews')
-    .select('*, reviewer:reviewer_id(username, full_name, avatar_url), bookings(listings(title))')
+    .select('*, reviewer:reviewer_id(id, username, full_name, avatar_url), bookings(listings(title))')
     .eq('reviewee_id', profile.id)
     .eq('is_published', true)
 
   // Fetch Lập team & Tuyển staff
   let recruitmentsQuery = supabase
     .from('recruitments')
-    .select('*, author:author_id(username, full_name, avatar_url, reputation_score)')
+    .select('*, author:author_id(id, username, full_name, avatar_url, reputation_score)')
     .eq('author_id', profile.id)
     .order('created_at', { ascending: false })
 
