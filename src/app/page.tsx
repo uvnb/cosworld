@@ -56,7 +56,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         )}
 
         {/* Category Icon Bar */}
-        <section className="grid grid-cols-4 sm:grid-cols-7 gap-3 sm:gap-4">
+        <section className="flex sm:grid sm:grid-cols-7 gap-3 sm:gap-4 overflow-x-auto hide-scrollbar pb-2">
           {[
             { id: '', icon: LayoutGrid, label: 'Tất cả', color: 'text-brand-600', bg: 'bg-brand-50' },
             { id: 'costume', icon: Shirt, label: 'Trang phục', color: 'text-purple-600', bg: 'bg-purple-50' },
@@ -71,7 +71,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               <Link 
                 href={cat.id ? `/?category=${cat.id}` : '/'} 
                 key={cat.id || i}
-                className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border shadow-sm cursor-pointer transition ${
+                className={`shrink-0 min-w-[80px] sm:min-w-0 flex flex-col items-center justify-center p-3.5 rounded-2xl border shadow-sm cursor-pointer transition ${
                   isActive ? 'bg-brand-50 border-brand-500 ring-1 ring-brand-500 shadow-md scale-105' : 'bg-white border-slate-200 hover:border-brand-300 hover:-translate-y-1'
                 }`}
               >

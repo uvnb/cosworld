@@ -34,7 +34,7 @@ export async function TopBar() {
             <span className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-1">
               Cos<span className="text-brand-600">World</span>
             </span>
-            <span className="text-[10px] block text-slate-400 font-semibold uppercase tracking-wider -mt-1">
+            <span className="hidden md:block text-[10px] text-slate-400 font-semibold uppercase tracking-wider -mt-1">
               Thuê đồ • Tuyển staff • Sự kiện
             </span>
           </div>
@@ -61,9 +61,9 @@ export async function TopBar() {
 
           {!user ? (
             <div className="pl-2 border-l border-slate-200">
-              <Link href="/login" className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
+              <Link href="/login" className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-brand-600/20 transition flex items-center gap-1.5 whitespace-nowrap">
                 <User className="w-3.5 h-3.5" />
-                <span>Đăng nhập / Đăng ký</span>
+                <span>Đăng nhập<span className="hidden sm:inline"> / Đăng ký</span></span>
               </Link>
             </div>
           ) : (
@@ -93,6 +93,21 @@ export async function TopBar() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Mobile Search Bar */}
+      <div className="md:hidden px-4 pb-3">
+        <form action="/" method="GET" className="flex items-center relative">
+          <input 
+            name="q"
+            type="text" 
+            placeholder="Tìm kiếm cosplay, studio..."
+            className="w-full pl-4 pr-10 py-2.5 text-sm bg-slate-100/80 focus:bg-white border border-transparent focus:border-brand-500 rounded-full outline-none transition"
+          />
+          <button type="submit" className="absolute right-4 text-slate-400 hover:text-brand-600 transition">
+            <Search className="w-4 h-4" />
+          </button>
+        </form>
       </div>
 
       <NavigationTabs />

@@ -137,13 +137,13 @@ export function ListingsGrid({ filters }: { filters?: ListingFilters }) {
                 
                 <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100">
                   {listing.distance_meters !== undefined ? (
-                    <span className="flex items-center gap-0.5 text-brand-600 font-medium">
-                      <MapPin className="w-2.5 h-2.5" /> Cách ~{Math.ceil(listing.distance_meters / 500) * 0.5}km
+                    <span className="flex items-center gap-0.5 text-brand-600 font-medium truncate max-w-[85px]">
+                      <MapPin className="w-2.5 h-2.5 shrink-0" /> <span className="truncate">Cách ~{Math.ceil(listing.distance_meters / 500) * 0.5}km</span>
                     </span>
                   ) : (
-                    <span className="flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" /> {listing.city}</span>
+                    <span className="flex items-center gap-0.5 truncate max-w-[85px]"><MapPin className="w-2.5 h-2.5 shrink-0" /> <span className="truncate">{listing.city}</span></span>
                   )}
-                  <span>{timeAgo(listing.created_at)}</span>
+                  <span className="shrink-0 ml-1">{timeAgo(listing.created_at)}</span>
                 </div>
               </div>
             </Link>
